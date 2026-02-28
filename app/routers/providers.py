@@ -2,9 +2,9 @@ from fastapi import APIRouter
 
 from app.services.gemini import gemini_service
 
-router = APIRouter(prefix="/gemini", tags=["Gemini"])
+router = APIRouter(prefix="/providers", tags=["Providers"])
 
-@router.get("/")
+@router.get("/gemini")
 async def gemini(prompt: str):
     response = gemini_service(prompt)
 
