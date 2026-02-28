@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from app.routers import all_routers
+
 app = FastAPI(
     title="AI & LLM Playground",
     description="",
@@ -9,3 +11,6 @@ app = FastAPI(
 @app.get("/")
 async def root():
     return {"message": "App is running"}
+
+for router in all_routers:
+    app.include_router(router)
