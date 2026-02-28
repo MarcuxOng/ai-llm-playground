@@ -1,0 +1,12 @@
+venv/
+.venv/
+__pycache__/
+
+.vscode/
+.idea/
+.qoder/
+
+.env
+
+ai_client/
+misc/
