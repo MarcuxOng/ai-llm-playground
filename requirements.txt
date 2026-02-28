@@ -1,6 +1,7 @@
 aiohttp
 anthropic
 bytez
+datasets
 fastapi
 fastmcp
 google
@@ -9,11 +10,17 @@ google-genai
 google-generativeai
 groq
 httpx
+langchian
+langgraph
 mistralai
+numpy
 openai
 protobuf
+pydantic
+pydantic_settings
 python-dotenv
 requests
+scikit-learn
 torch
 torchaudio
 torchvision
