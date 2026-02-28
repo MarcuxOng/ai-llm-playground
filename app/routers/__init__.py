@@ -1,5 +1,5 @@
-from app.routers.gemini import router as gemini_router
+from app.routers.providers import router as providers_router
 
 all_routers = [
-    gemini_router,
+    providers_router,
 ]
