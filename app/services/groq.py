@@ -6,7 +6,7 @@ from app.config import settings
 client = Groq(api_key=settings.groq_api_key)
 
 
-def groq_service(prompt):
+def groq_service(prompt: str):
     try:
         messages: list[ChatCompletionUserMessageParam] = [
             {
