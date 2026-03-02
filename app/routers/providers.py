@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from app.services.gemini import gemini_service
 from app.services.groq import groq_service
@@ -7,30 +8,46 @@ from app.services.openrouter import openrouter_service
 
 router = APIRouter(prefix="/providers", tags=["Providers"])
 
-
-@router.get("/gemini")
-async def gemini(prompt: str):
-    response = gemini_service(prompt)
-
-    return response
+class ProviderInput(BaseModel):
+    model: str
+    prompt: str
 
 
-@router.get("/groq")
-async def groq(prompt: str):
-    response = groq_service(prompt)
-
-    return response
-
-
-@router.get("/mistral")
-async def mistral(prompt: str):
-    response = mistral_service(prompt)
+@router.post("/gemini")
+async def gemini(request: ProviderInput):
+    response = gemini_service(
+        model=request.model, 
+        prompt=request.prompt
+    )
 
     return response
 
 
-@router.get("/openrouter")
-async def openrouter(prompt: str):
-    response = openrouter_service(prompt)
+@router.post("/groq")
+async def groq(request: ProviderInput):
+    response = groq_service(
+        model=request.model, 
+        prompt=request.prompt
+    )
+
+    return response
+
+
+@router.post("/mistral")
+async def mistral(request: ProviderInput):
+    response = mistral_service(
+        model=request.model,
+        prompt=request.prompt
+    )
+
+    return response
+
+
+@router.post("/openrouter")
+async def openrouter(request: ProviderInput):
+    response = openrouter_service(
+        model=request.model, 
+        prompt=request.prompt
+    )
 
     return response

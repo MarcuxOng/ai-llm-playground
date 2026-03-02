@@ -1,3 +1,4 @@
+import requests
 from groq import Groq
 from groq.types.chat import ChatCompletionUserMessageParam
 
@@ -6,7 +7,23 @@ from app.config import settings
 client = Groq(api_key=settings.groq_api_key)
 
 
-def groq_service(prompt: str):
+def get_groq_models():
+    try:
+        url = "https://api.groq.com/openai/v1/models"
+        headers = {
+            "Authorization": f"Bearer {settings.groq_api_key}",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        return response.json()
+    except Exception as e:
+        return e
+
+
+def groq_service(model: str, prompt: str):
     try:
         messages: list[ChatCompletionUserMessageParam] = [
             {
@@ -16,7 +33,7 @@ def groq_service(prompt: str):
         ]
 
         completion = client.chat.completions.create(
-            model=settings.groq_model,
+            model=model,
             messages=messages,
             temperature=0.6,
             max_completion_tokens=4096,
