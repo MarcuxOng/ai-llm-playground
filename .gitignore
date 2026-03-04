@@ -81,7 +81,6 @@ pip-delete-this-directory.txt
 Thumbs.db
 
 # Project specific
-ai_client/
 misc/
 
 # mypy
