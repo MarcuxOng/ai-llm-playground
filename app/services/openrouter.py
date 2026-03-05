@@ -1,11 +1,14 @@
-import requests
+import logging
 import json
+import requests
 
 from app.config import settings
 
+logger = logging.getLogger(__name__)
 
 def list_openrouter_models():
     try: 
+        logger.info("Fetching OpenRouter models...")
         URL = "https://openrouter.ai/api/v1/models"
         headers = {
             "Authorization": f"Bearer {settings.openrouter_api_key}",
@@ -24,11 +27,13 @@ def list_openrouter_models():
         return model_list
     
     except Exception as e:
+        logger.error(f"Error fetching OpenRouter models: {e}")
         raise e
 
 
 def openrouter_service(model: str, prompt: str):
     try:
+        logger.info(f"Generating content with OpenRouter model: {model}")
         response = requests.post(
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
@@ -52,4 +57,5 @@ def openrouter_service(model: str, prompt: str):
         return output
 
     except Exception as e:
+        logger.error(f"Error in OpenRouter service: {e}")
         raise e

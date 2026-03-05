@@ -1,11 +1,14 @@
+import logging
 import requests
 from mistralai import Mistral
 
 from app.config import settings
 
+logger = logging.getLogger(__name__)
 
 def list_mistral_models():
     try:
+        logger.info("Fetching Mistral models...")
         url = "https://api.mistral.ai/v1/models"
         headers = {
             "Authorization": f"Bearer {settings.mistral_api_key}"
@@ -24,11 +27,13 @@ def list_mistral_models():
         return model_list
     
     except Exception as e:
+        logger.error(f"Error fetching Mistral models: {e}")
         raise e
 
 
 def mistral_service(model: str, prompt: str):
     try:
+        logger.info(f"Generating content with Mistral model: {model}")
         with Mistral(
             api_key=settings.mistral_api_key,
         ) as mistral:
@@ -48,4 +53,5 @@ def mistral_service(model: str, prompt: str):
         return response
 
     except Exception as e:
+        logger.error(f"Error generating content with Mistral: {e}")
         raise e
