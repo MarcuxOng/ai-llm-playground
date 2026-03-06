@@ -1,5 +1,6 @@
 import logging
 from google import genai
+from google.genai import types
 
 from app.config import settings
 
@@ -29,6 +30,13 @@ def gemini_service(model: str, prompt: str):
         response = client.models.generate_content(
             model=model,
             contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="You are a helpful assistant.",
+                temperature=0.2,
+                # thinking_config=types.ThinkingConfig(
+                #     thinking_level="high"
+                # ),
+            )
         )
 
         return response.text
