@@ -10,7 +10,7 @@ google-genai
 google-generativeai
 groq
 httpx
-langchian
+langchain
 langgraph
 mistralai
 numpy
