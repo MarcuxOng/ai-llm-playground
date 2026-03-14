@@ -82,6 +82,7 @@ Thumbs.db
 
 # Project specific
 misc/
+/.github/AGENT.md
 
 # mypy
 .mypy_cache/

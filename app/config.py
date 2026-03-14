@@ -13,7 +13,4 @@ class Settings(BaseSettings):
     openrouter_api_key: str
     mistral_api_key: str
 
-    bytez_api_key: str
-    bytez_model: str
-
 settings = Settings()

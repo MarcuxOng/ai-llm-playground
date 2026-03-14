@@ -1,0 +1,152 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GEMINI_API_KEY: test-gemini-key
+      GROQ_API_KEY: test-groq-key
+      OPENROUTER_API_KEY: test-openrouter-key
+      MISTRAL_API_KEY: test-mistral-key
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+        
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8
+        
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        
+      - name: Check code structure
+        run: |
+          python -c "import app.app; print('App imports successfully')"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image for validation
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ai-llm-playground:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test container
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name ai-llm-playground-ci \
+            -e GEMINI_API_KEY=test-gemini-key \
+            -e GROQ_API_KEY=test-groq-key \
+            -e OPENROUTER_API_KEY=test-openrouter-key \
+            -e MISTRAL_API_KEY=test-mistral-key \
+            -p 8000:8000 ai-llm-playground:ci
+
+          for i in {1..20}; do
+            if curl -fsS http://localhost:8000/ >/dev/null; then
+              echo "Container responded successfully"
+              break
+            fi
+            if [ "$i" -eq 20 ]; then
+              echo "Smoke test failed: service did not respond in time"
+              docker logs ai-llm-playground-ci
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs ai-llm-playground-ci
+
+      - name: Cleanup test container
+        if: always()
+        run: docker rm -f ai-llm-playground-ci || true
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ai-llm-playground:ci
+          format: table
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
