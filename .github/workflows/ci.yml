@@ -129,7 +129,15 @@ jobs:
             -e MISTRAL_API_KEY \
             -p 8000:8000 ai-llm-playground:ci
 
+          # Wait for container to be ready
           for i in {1..30}; do
+            # Check if container is still running
+            if ! docker ps -q -f name=test-container | grep -q .; then
+              echo "✗ Container crashed on startup"
+              docker logs test-container
+              exit 1
+            fi
+
             if curl -fsS --max-time 5 http://localhost:8000/ 2>/dev/null; then
               echo "✓ Container responded successfully"
               exit 0

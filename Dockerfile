@@ -24,9 +24,9 @@ COPY requirements.txt .
 
 # Install dependencies with CPU-only torch to save space
 # CPU-only versions are ~100MB vs 2GB+ for CUDA versions
-RUN pip install --upgrade pip && \
+RUN pip install --upgrade pip setuptools wheel && \
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir --upgrade -r requirements.txt
 
 # Stage 2: Runtime stage
 FROM python:3.11-slim AS runtime
