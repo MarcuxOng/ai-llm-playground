@@ -8,9 +8,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-@app.get("/")
-async def root():
-    return {"message": "App is running"}
 
 for router in all_routers:
     app.include_router(router)
+
+
+@app.get("/")
+async def root():
+    return {"message": "App is running"}
