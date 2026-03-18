@@ -48,9 +48,21 @@ jobs:
     needs: test
     
     steps:
+      - name: Free up disk space
+        run: |
+          # Remove unnecessary large packages
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          # Clean docker
+          docker system prune -af || true
+          # Show available space
+          df -h
+
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
@@ -63,6 +75,12 @@ jobs:
           tags: ai-llm-playground:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+          # Use provenance false to reduce metadata size
+          provenance: false
+          # Squash layers to reduce size
+          squash: true
 
       - name: Smoke test container
         shell: bash
