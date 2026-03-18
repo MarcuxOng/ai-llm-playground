@@ -1,9 +1,11 @@
-from app.routers.providers import router as providers_router
-from app.routers.models import router as models_router
-# from app.routers.agents import router as agents_router
+from app.routers.gemini import router as gemini_router
+from app.routers.groq import router as groq_router
+from app.routers.mistral import router as mistral_router
+from app.routers.openrouter import router as openrouter_router
 
 all_routers = [
-    models_router,
-    providers_router,
-    # agents_router,
+    gemini_router,
+    groq_router,
+    mistral_router,
+    openrouter_router,
 ]

@@ -10,7 +10,7 @@ client = genai.Client(api_key=settings.gemini_api_key)
 
 def list_gemini_models():
     try:
-        logging.info("Fetching Gemini models...")
+        logger.info("Fetching Gemini models...")
         models = sorted(client.models.list(), key=lambda m: m.name)
         model_list = []
         for m in models:
@@ -20,13 +20,13 @@ def list_gemini_models():
         return model_list
     
     except Exception as e:
-        logging.error(f"Error fetching Gemini models: {e}")
+        logger.error(f"Error fetching Gemini models: {e}")
         raise e
 
 
 def gemini_service(model: str, prompt: str):
     try:
-        logging.info(f"Generating content with Gemini model: {model}")
+        logger.info(f"Generating content with Gemini model: {model}")
         response = client.models.generate_content(
             model=model,
             contents=prompt,
@@ -42,5 +42,5 @@ def gemini_service(model: str, prompt: str):
         return response.text
 
     except Exception as e:
-        logging.error(f"Error generating Gemini content: {e}")
+        logger.error(f"Error generating Gemini content: {e}")
         raise e
