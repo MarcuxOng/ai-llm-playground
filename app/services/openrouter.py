@@ -53,8 +53,27 @@ def openrouter_service(model: str, prompt: str):
         )
 
         data = response.json()
-        output = data["choices"][0]["message"]["content"]
-        return output
+
+        # 1. Check for explicit API error first
+        if "error" in data:
+            error_msg = data["error"].get("message", "Unknown OpenRouter error")
+            logger.error(f"OpenRouter API error: {error_msg}")
+            raise Exception(f"OpenRouter API error: {error_msg}")
+
+        # 2. Validate choices exist and are not empty
+        choices = data.get("choices")
+        if not choices:
+            logger.error(f"OpenRouter API returned no choices: {data}")
+            raise Exception("OpenRouter API did not return choices")
+
+        # 3. Safely extract content
+        try:
+            output = choices[0]["message"]["content"]
+            logger.info("OpenRouter content generation successful")
+            return output
+        except (KeyError, IndexError) as e:
+            logger.error(f"Malformed OpenRouter response structure: {e}")
+            raise Exception(f"Could not parse content from OpenRouter response: {e}")
 
     except Exception as e:
         logger.error(f"Error in OpenRouter service: {e}")

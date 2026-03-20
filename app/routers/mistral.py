@@ -19,7 +19,7 @@ async def get_mistral_model():
     return list_mistral_models()
 
 
-@router.post("/mistral")
+@router.post("/")
 async def mistral(request: ProviderInput):
     response = mistral_service(
         model=request.model,
