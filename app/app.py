@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from app.routers import all_routers
 
 app = FastAPI(
-    title="AI & LLM Playground",
+    title="AI/LLM Playground",
     description="",
     version="1.0.0"
 )
