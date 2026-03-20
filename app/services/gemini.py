@@ -1,15 +1,46 @@
+import logging
 from google import genai
 from google.genai import types
 
 from app.config import settings
 
+logger = logging.getLogger(__name__)
 client = genai.Client(api_key=settings.gemini_api_key)
 
 
-def gemini_service(prompt):
-    response = client.models.generate_content(
-        model=settings.gemini_model,
-        contents=prompt,
-    )
+def list_gemini_models():
+    try:
+        logger.info("Fetching Gemini models...")
+        models = sorted(client.models.list(), key=lambda m: m.name)
+        model_list = []
+        for m in models:
+            response = m.name.replace("models/", "")
+            model_list.append(response)
+    
+        return model_list
+    
+    except Exception as e:
+        logger.error(f"Error fetching Gemini models: {e}")
+        raise e
 
-    return response.text
+
+def gemini_service(model: str, prompt: str):
+    try:
+        logger.info(f"Generating content with Gemini model: {model}")
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="You are a helpful assistant.",
+                temperature=0.2,
+                # thinking_config=types.ThinkingConfig(
+                #     thinking_level="high"
+                # ),
+            )
+        )
+
+        return response.text
+
+    except Exception as e:
+        logger.error(f"Error generating Gemini content: {e}")
+        raise e
