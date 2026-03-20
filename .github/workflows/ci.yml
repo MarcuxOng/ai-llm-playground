@@ -70,6 +70,8 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
+      NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -125,18 +127,25 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
         run: |
           # Use shell fallback for empty secrets
           GEMINI_KEY="${GEMINI_API_KEY:-test-key}"
           GROQ_KEY="${GROQ_API_KEY:-test-key}"
           OPENROUTER_KEY="${OPENROUTER_API_KEY:-test-key}"
           MISTRAL_KEY="${MISTRAL_API_KEY:-test-key}"
+          OPENWEATHERMAP_KEY="${OPENWEATHERMAP_API_KEY:-test-key}"
+          NEWS_KEY="${NEWS_API_KEY:-test-key}"
+
 
           docker run -d --name test-container \
             -e GEMINI_API_KEY="$GEMINI_KEY" \
             -e GROQ_API_KEY="$GROQ_KEY" \
             -e OPENROUTER_API_KEY="$OPENROUTER_KEY" \
             -e MISTRAL_API_KEY="$MISTRAL_KEY" \
+            -e OPENWEATHERMAP_API_KEY="$OPENWEATHERMAP_KEY" \
+            -e NEWS_API_KEY="$NEWS_KEY" \
             -p 8000:8000 ai-llm-playground:ci
 
           # Wait for container to be ready

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from app.services.gemini import (
     gemini_service, 
     list_gemini_models, 
-    # tools_service
+    tools_service
 )
 
 router = APIRouter(prefix="/gemini", tags=["Gemini"])
@@ -30,19 +30,14 @@ async def gemini(request: ProviderInput):
     return response
 
 
-# @router.post("/tools")
-# async def tools(request: ProviderInput):
-#     """
-#     Gemini with tool calling support.
+@router.post("/tools")
+async def tools(request: ProviderInput):
+    """
+    Gemini with tool calling support.
+    """
+    response = tools_service(
+        model=request.model, 
+        prompt=request.prompt
+    )
 
-#     Tools consist of:
-#         - calculate: Evaluate mathematical expressions with support for common operators and functions.
-#         - python_runner: Execute Python code snippets for data analysis, algorithms, or logic verification.
-#         - web_search: Perform web searches to retrieve current information.
-#     """
-#     response = tools_service(
-#         model=request.model, 
-#         prompt=request.prompt
-#     )
-
-#     return response
+    return response
