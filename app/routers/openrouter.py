@@ -19,7 +19,7 @@ async def get_openrouter_model():
     return list_openrouter_models()
 
 
-@router.post("/openrouter")
+@router.post("/")
 async def openrouter(request: ProviderInput):
     response = openrouter_service(
         model=request.model, 
