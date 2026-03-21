@@ -27,3 +27,11 @@ async def openrouter(request: ProviderInput):
     )
 
     return response
+
+
+@router.post("/tools")
+async def tools(request: ProviderInput):
+    """
+    OpenRouter with tool calling support.
+    """
+    return {"message": "OpenRouter tool calling is not implemented yet."}
