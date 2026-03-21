@@ -18,6 +18,8 @@ langchain-anthropic==1.4.0
 langchain-core==1.2.20
 langchain-community==0.4.1
 langchain-google-genai==4.2.1
+langchain-groq==1.1.2
+langchain-mistralai==1.1.2
 langchain-openai==1.1.11
 langchain-text-splitters==1.1.1
 langgraph==1.1.3
