@@ -27,3 +27,11 @@ async def mistral(request: ProviderInput):
     )
 
     return response
+
+
+@router.post("/tools")
+async def tools(request: ProviderInput):
+    """
+    Mistral with tool calling support.
+    """
+    return {"message": "Mistral tool calling is not implemented yet."}

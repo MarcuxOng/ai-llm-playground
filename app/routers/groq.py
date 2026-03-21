@@ -27,3 +27,11 @@ async def groq(request: ProviderInput):
     )
 
     return response
+
+
+@router.post("/tools")
+async def tools(request: ProviderInput):
+    """
+    Groq with tool calling support.
+    """
+    return {"message": "Groq tool calling is not implemented yet."}
