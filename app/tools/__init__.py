@@ -109,5 +109,6 @@ def call_tool(name: str, **kwargs) -> Any:
 
 
 # Import submodules to trigger registration decorators
+from app.tools.finance import finance_tools
 from app.tools.system import system_tools
 from app.tools.web import web_tools
