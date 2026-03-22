@@ -3,7 +3,8 @@ from pydantic import BaseModel
 
 from app.services.openrouter import (
     list_openrouter_models,
-    openrouter_service
+    openrouter_service,
+    tools_service
 )
 
 router = APIRouter(prefix="/openrouter", tags=["OpenRouter"])
@@ -34,4 +35,8 @@ async def tools(request: ProviderInput):
     """
     OpenRouter with tool calling support.
     """
-    return {"message": "OpenRouter tool calling is not implemented yet."}
+    response = tools_service(
+        model=request.model,
+        prompt=request.prompt
+    )
+    return response
