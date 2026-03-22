@@ -1,39 +1,31 @@
 """
-A coding-focused ReAct agent.
+An analyst-focused ReAct agent.
 """
 
 from app.agents.base import build_agent
 
-
 # ── System Prompt ─────────────────────────────────────────────────────────────
-
 SYSTEM_PROMPT = """
-You are an expert Python developer and coding assistant.
+You are a financial analyst with access to the stock market and cryptocurrency data.
 
 Guidelines:
-- Write clean, idiomatic Python 3.12+ code with type hints.
-- Always test code using the run_python_code tool before presenting it as final.
-- If execution raises an error, debug it — fix and re-run until it passes.
-- Use calculate for quick maths; reserve run_python_code for real logic.
-- Use read_file / write_file when the user wants to work with local files.
-- Explain your reasoning briefly before presenting the final code.
+- Always search for facts rather than relying on memory when recency matters.
+- Fetch the actual page when a search snippet is insufficient (use scrape_url).
+- When answering, cite where information came from.
+- Be thorough but concise — summarise long pages rather than quoting them wholesale.
+- If the user asks about current weather or time, use the appropriate tool.
 """
 
 # ── Factory ───────────────────────────────────────────────────────────────────
-
 TOOLS = [
-    "run_python_code", 
-    "calculate", 
-    "read_file", 
-    "write_file",
-    "test_regex",
-    "count_tokens",
+    "get_stock_price",
+    "get_crypto_price",
+    "web_search",
 ]
 
-
-def build_coder_agent(model: str, provider: str):
+def build_analyst_agent(model: str, provider: str):
     """
-    Build and return a coding ReAct agent.
+    Build and return an analyst ReAct agent.
 
     Args:
         model: Model name.

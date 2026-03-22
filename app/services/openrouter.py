@@ -16,8 +16,7 @@ def list_openrouter_models():
         }
         res = requests.get(URL, headers=headers)
         if res.status_code != 200:
-            print("Failed to fetch models:", res.text)
-            return
+            logger.error("Failed to fetch models:", res.text)
 
         models = res.json().get("data", [])
         free_models = sorted([m["id"] for m in models if m["id"].endswith(":free")])

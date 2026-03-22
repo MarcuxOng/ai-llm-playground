@@ -69,6 +69,7 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
           OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
@@ -79,6 +80,7 @@ jobs:
           GROQ_KEY="${GROQ_API_KEY:-test-key}"
           OPENROUTER_KEY="${OPENROUTER_API_KEY:-test-key}"
           MISTRAL_KEY="${MISTRAL_API_KEY:-test-key}"
+          ALPHA_VANTAGE_KEY="${ALPHA_VANTAGE_API_KEY:-test-key}"
           OPENWEATHERMAP_KEY="${OPENWEATHERMAP_API_KEY:-test-key}"
           NEWS_KEY="${NEWS_API_KEY:-test-key}"
           GOOGLE_SEARCH_KEY="${GOOGLE_SEARCH_API_KEY:-test-key}"
@@ -90,6 +92,7 @@ jobs:
             -e GROQ_API_KEY="$GROQ_KEY" \
             -e OPENROUTER_API_KEY="$OPENROUTER_KEY" \
             -e MISTRAL_API_KEY="$MISTRAL_KEY" \
+            -e ALPHA_VANTAGE_API_KEY="$ALPHA_VANTAGE_KEY" \
             -e OPENWEATHERMAP_API_KEY="$OPENWEATHERMAP_KEY" \
             -e NEWS_API_KEY="$NEWS_KEY" \
             -e GOOGLE_SEARCH_API_KEY="$GOOGLE_SEARCH_KEY" \
@@ -125,6 +128,7 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
       OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
       NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
       GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
@@ -150,6 +154,7 @@ jobs:
           export GROQ_API_KEY="${GROQ_API_KEY:-test-key}"
           export OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-test-key}"
           export MISTRAL_API_KEY="${MISTRAL_API_KEY:-test-key}"
+          export ALPHA_VANTAGE_API_KEY="${ALPHA_VANTAGE_API_KEY:-test-key}"
           export OPENWEATHERMAP_API_KEY="${OPENWEATHERMAP_API_KEY:-test-key}"
           export NEWS_API_KEY="${NEWS_API_KEY:-test-key}"
           export GOOGLE_SEARCH_API_KEY="${GOOGLE_SEARCH_API_KEY:-test-key}"
