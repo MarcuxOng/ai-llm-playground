@@ -3,14 +3,20 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
-from app.agents import build_coder_agent, build_research_agent, run_once, AgentConfig
+from app.agents import (
+    AgentConfig,
+    build_analyst_agent, 
+    build_coder_agent, 
+    build_research_agent, 
+    run_once, 
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
 
 class AgentRunRequest(BaseModel):
-    preset: str  # "coder" or "research"
+    preset: str  # "coder", "research", or "analyst"
     question: str
     model: str
     provider: str  # "gemini", "groq", "mistral", "openrouter"
@@ -26,6 +32,7 @@ class AgentRunResponse(BaseModel):
 PRESETS = {
     "coder": build_coder_agent,
     "research": build_research_agent,
+    "analyst": build_analyst_agent,
 }
 
 

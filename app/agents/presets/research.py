@@ -1,14 +1,5 @@
 """
 A research-focused ReAct agent.
-
-Tools:
-  • web_search       — DuckDuckGo search (no API key required)
-  • scrape_url       — retrieve readable text from a URL
-  • get_weather      — live weather via OpenWeatherMap
-  • get_datetime_info   — current date/time in any timezone
-  • get_news         — latest news headlines via NewsAPI
-  • get_wikipedia_summary — fetch Wikipedia summaries
-  • get_youtube_transcript — fetch YouTube video transcripts
 """
 
 from app.agents.base import build_agent
