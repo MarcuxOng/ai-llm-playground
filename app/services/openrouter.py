@@ -3,6 +3,7 @@ import json
 import requests
 
 from app.config import settings
+from app.tools import call_tool, get_tools
 
 logger = logging.getLogger(__name__)
 
@@ -77,4 +78,77 @@ def openrouter_service(model: str, prompt: str):
 
     except Exception as e:
         logger.error(f"Error in OpenRouter service: {e}")
+        raise e
+
+
+def tools_service(model: str, prompt: str):
+    """
+    Generate content using OpenRouter with tool calling support.
+    """
+    try:
+        logger.info(f"Starting tool-enabled chat with OpenRouter model: {model}")
+        
+        # Prepare tools (standard OpenAI schema)
+        tool_schemas = get_tools()
+        messages = [
+            {"role": "user", "content": prompt}
+        ]
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {settings.openrouter_api_key}",
+            "Content-Type": "application/json"
+        }
+
+        # Tool Loop
+        for _ in range(10):
+            payload = {
+                "model": model,
+                "messages": messages,
+                "tools": tool_schemas,
+                "tool_choice": "auto",
+                "temperature": 0.1,
+            }
+            response = requests.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            
+            if "error" in data:
+                raise Exception(f"OpenRouter error: {data['error']}")
+                
+            choice = data["choices"][0]
+            response_message = choice["message"]
+            tool_calls = response_message.get("tool_calls")
+            
+            if not tool_calls:
+                return response_message.get("content", "")
+
+            # Add assistant message to history
+            messages.append(response_message)
+            
+            # Execute tools
+            for tool_call in tool_calls:
+                function_name = tool_call["function"]["name"]
+                function_args = json.loads(tool_call["function"]["arguments"])
+                
+                logger.info(f"Executing OpenRouter tool: {function_name} with {function_args}")
+                try:
+                    result = call_tool(function_name, **function_args)
+                    messages.append({
+                        "tool_call_id": tool_call["id"],
+                        "role": "tool",
+                        "name": function_name,
+                        "content": str(result),
+                    })
+                except Exception as e:
+                    logger.error(f"OpenRouter tool execution failed: {function_name} -> {e}")
+                    messages.append({
+                        "tool_call_id": tool_call["id"],
+                        "role": "tool",
+                        "name": function_name,
+                        "content": f"Error: {str(e)}",
+                    })
+        
+        return "Error: Maximum tool-calling iterations reached."
+    except Exception as e:
+        logger.error(f"Error in OpenRouter tools_service: {e}")
         raise e

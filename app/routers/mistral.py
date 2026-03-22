@@ -3,7 +3,8 @@ from pydantic import BaseModel
 
 from app.services.mistral import (
     list_mistral_models, 
-    mistral_service
+    mistral_service,
+    tools_service
 )
 
 router = APIRouter(prefix="/mistral", tags=["Mistral"])
@@ -34,4 +35,8 @@ async def tools(request: ProviderInput):
     """
     Mistral with tool calling support.
     """
-    return {"message": "Mistral tool calling is not implemented yet."}
+    response = tools_service(
+        model=request.model,
+        prompt=request.prompt
+    )
+    return response
