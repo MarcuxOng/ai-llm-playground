@@ -16,4 +16,7 @@ class Settings(BaseSettings):
     openweathermap_api_key: str
     news_api_key: str
 
+    google_search_api_key: str
+    google_cse_id: str
+
 settings = Settings()

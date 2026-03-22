@@ -73,10 +73,11 @@ def project_tools_to_langchain(tool_names: List[str]) -> List[BaseTool]:
         List of LangChain BaseTool objects.
     """
     lc_tools = []
+    missing_tools: List[str] = []
     for name in tool_names:
         entry = _REGISTRY.get(name)
         if not entry:
-            logger.warning(f"Tool '{name}' not found in registry. Skipping.")
+            missing_tools.append(name)
             continue
         
         fn = entry["fn"]
@@ -90,6 +91,8 @@ def project_tools_to_langchain(tool_names: List[str]) -> List[BaseTool]:
         )
         lc_tools.append(lc_tool)
         
+    if missing_tools:
+        raise ValueError(f"Tool(s) not found in registry: {missing_tools}")
     return lc_tools
 
 

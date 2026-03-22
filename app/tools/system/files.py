@@ -4,10 +4,21 @@ File tool — reads and writes local files.
 
 import logging
 import os
+from pathlib import Path
 
 from app.tools import register
 
 logger = logging.getLogger(__name__)
+WORKSPACE_ROOT = Path.cwd().resolve()
+
+
+def _resolve_workspace_path(path: str) -> Path:
+    candidate = (WORKSPACE_ROOT / path).resolve() if not Path(path).is_absolute() else Path(path).resolve()
+    try:
+        candidate.relative_to(WORKSPACE_ROOT)
+    except ValueError as exc:
+        raise PermissionError(f"Path '{path}' is outside workspace root.") from exc
+    return candidate
 
 
 @register
@@ -20,11 +31,11 @@ def read_file(path: str, max_chars: int = 4000) -> str:
     """
     try:
         logger.info(f"Reading file: {path}")
-        abs_path = os.path.abspath(path)
-        if not os.path.isfile(abs_path):
+        safe_path = _resolve_workspace_path(path)
+        if not safe_path.is_file():
             return f"Error: File '{path}' not found."
             
-        with open(abs_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(safe_path, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
             
         if len(content) > max_chars:
@@ -45,12 +56,11 @@ def write_file(path: str, content: str) -> str:
     """
     try:
         logger.info(f"Writing file: {path}")
-        abs_path = os.path.abspath(path)
+        safe_path = _resolve_workspace_path(path)
         
         # Ensure directory exists
-        os.makedirs(os.path.dirname(abs_path) or ".", exist_ok=True)
-        
-        with open(abs_path, "w", encoding="utf-8") as f:
+        os.makedirs(os.path.dirname(str(safe_path)) or ".", exist_ok=True)
+        with open(safe_path, "w", encoding="utf-8") as f:
             f.write(content)
             
         return f"Successfully wrote {len(content)} characters to '{path}'."

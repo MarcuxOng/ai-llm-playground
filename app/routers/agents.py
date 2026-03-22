@@ -1,6 +1,7 @@
 import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from app.agents import build_coder_agent, build_research_agent, run_once, AgentConfig
 
@@ -13,7 +14,7 @@ class AgentRunRequest(BaseModel):
     question: str
     model: str
     provider: str  # "gemini", "groq", "mistral", "openrouter"
-    verbose: bool = True
+    verbose: bool = False
 
 
 class AgentRunResponse(BaseModel):
@@ -46,7 +47,11 @@ async def run_agent(request: AgentRunRequest):
         logger.info(f"Running agent with preset: {request.preset}, model: {request.model}, provider: {request.provider}")
         # Build the agent based on preset and provider
         agent_factory = PRESETS[request.preset]
-        agent = agent_factory(model=request.model, provider=request.provider)
+        agent = await run_in_threadpool(
+            agent_factory, 
+            model=request.model, 
+            provider=request.provider
+        )
         
         # Run the agent
         config = AgentConfig(
@@ -55,7 +60,12 @@ async def run_agent(request: AgentRunRequest):
             provider=request.provider,
             verbose=request.verbose
         )
-        answer = run_once(agent, request.question, config=config)
+        answer = await run_in_threadpool(
+            run_once, 
+            agent, 
+            request.question, 
+            config=config
+        )
         
         return AgentRunResponse(
             answer=answer,
@@ -63,6 +73,8 @@ async def run_agent(request: AgentRunRequest):
             model=request.model,
             provider=request.provider
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        logger.error(f"Error running agent: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Error running agent")
+        raise HTTPException(status_code=500, detail="Agent execution failed.") from e
