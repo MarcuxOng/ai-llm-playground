@@ -71,6 +71,8 @@ jobs:
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
           OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
+          GOOGLE_CSE_ID: ${{ secrets.GOOGLE_CSE_ID }}
         run: |
           # Use shell fallback for empty secrets
           GEMINI_KEY="${GEMINI_API_KEY:-test-key}"
@@ -79,6 +81,8 @@ jobs:
           MISTRAL_KEY="${MISTRAL_API_KEY:-test-key}"
           OPENWEATHERMAP_KEY="${OPENWEATHERMAP_API_KEY:-test-key}"
           NEWS_KEY="${NEWS_API_KEY:-test-key}"
+          GOOGLE_SEARCH_KEY="${GOOGLE_SEARCH_API_KEY:-test-key}"
+          GOOGLE_CSE_ID="${GOOGLE_CSE_ID:-test-id}"
 
 
           docker run -d --name test-container \
@@ -88,6 +92,8 @@ jobs:
             -e MISTRAL_API_KEY="$MISTRAL_KEY" \
             -e OPENWEATHERMAP_API_KEY="$OPENWEATHERMAP_KEY" \
             -e NEWS_API_KEY="$NEWS_KEY" \
+            -e GOOGLE_SEARCH_API_KEY="$GOOGLE_SEARCH_KEY" \
+            -e GOOGLE_CSE_ID="$GOOGLE_CSE_ID" \
             -p 8000:8000 ai-llm-playground:ci
 
           # Wait for container to be ready
@@ -121,6 +127,8 @@ jobs:
       MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
       OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
       NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+      GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
+      GOOGLE_CSE_ID: ${{ secrets.GOOGLE_CSE_ID }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -142,4 +150,8 @@ jobs:
           export GROQ_API_KEY="${GROQ_API_KEY:-test-key}"
           export OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-test-key}"
           export MISTRAL_API_KEY="${MISTRAL_API_KEY:-test-key}"
+          export OPENWEATHERMAP_API_KEY="${OPENWEATHERMAP_API_KEY:-test-key}"
+          export NEWS_API_KEY="${NEWS_API_KEY:-test-key}"
+          export GOOGLE_SEARCH_API_KEY="${GOOGLE_SEARCH_API_KEY:-test-key}"
+          export GOOGLE_CSE_ID="${GOOGLE_CSE_ID:-test-id}"
           python -c "import app.app; print('App imports successfully')"
