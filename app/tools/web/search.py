@@ -1,10 +1,11 @@
 """
-Search tool — searches the web using DuckDuckGo.
+Search tool — searches the web using the official Google Custom Search API.
 """
 
 import logging
-import requests
+from googleapiclient.discovery import build
 
+from app.config import settings
 from app.tools import register
 
 logger = logging.getLogger(__name__)
@@ -19,33 +20,34 @@ def web_search(query: str, max_results: int = 5) -> str:
     :param max_results: Maximum number of results to return (default 5).
     """
     try:
-        logger.info(f"Searching web for: {query}")
-        r = requests.get(
-            "https://api.duckduckgo.com/",
-            params={"q": query, "format": "json", "no_redirect": 1, "no_html": 1},
-            timeout=10,
-            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"},
+        logger.info(f"Searching Google for: {query}")
+        
+        # Build the service
+        service = build(
+            "customsearch", 
+            "v1", 
+            developerKey=settings.google_search_api_key
         )
-        r.raise_for_status()
-        data = r.json()
+    
+        # Execute the search
+        res = service.cse().list(
+            q=query, 
+            cx=settings.google_cse_id, 
+            num=min(max_results, 10)
+        ).execute()
+
+        items = res.get('items', [])
+        if not items:
+            return f"No Google results found for '{query}'."
         
         results = []
-        
-        # Abstract (top answer)
-        if data.get("AbstractText"):
-            results.append(f"Title: {data.get('Heading', 'Summary')}\nURL: {data.get('AbstractURL', '')}\nSnippet: {data['AbstractText']}")
-
-        # Related topics
-        for topic in data.get("RelatedTopics", []):
-            if len(results) >= max_results:
-                break
-            if isinstance(topic, dict) and topic.get("Text"):
-                results.append(f"Title: {topic.get('Text', '')[:80]}\nURL: {topic.get('FirstURL', '')}\nSnippet: {topic.get('Text', '')}")
-
-        if not results:
-            return f"No results found for '{query}'."
+        for item in items:
+            title = item.get('title', 'No Title')
+            link = item.get('link', '#')
+            snippet = item.get('snippet', 'No snippet available.')
+            results.append(f"Title: {title}\nURL: {link}\nSnippet: {snippet}")
 
         return "\n\n---\n\n".join(results)
     except Exception as e:
-        logger.error(f"Web search error for {query}: {e}")
-        return f"Error: {str(e)}"
+        logger.error(f"Google web search error for {query}: {e}")
+        return f"Error performing Google Search: {str(e)}"
