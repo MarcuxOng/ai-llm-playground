@@ -60,5 +60,4 @@ def build_research_agent(model: str, provider: str):
         )
         return res
     except Exception as e:
-        print(f"Error building research agent: {e}")
-        raise
+        raise e

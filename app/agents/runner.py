@@ -88,9 +88,7 @@ def run_interactive(agent, config: Optional[AgentConfig] = None) -> None:
         config: Optional AgentConfig for logging behaviour.
     """
     cfg = config or AgentConfig()
-    print(f"\n🤖  {cfg.name} ready  |  provider: {cfg.provider}  |  model: {cfg.model}")
-    print("    Type 'quit' to exit.\n")
-
+    print(f"\n🤖  {cfg.name} ready  |  provider: {cfg.provider}  |  model: {cfg.model}\n    Type 'quit' to exit.\n")
     while True:
         try:
             user_input = input("You: ").strip()
@@ -110,9 +108,7 @@ def run_interactive(agent, config: Optional[AgentConfig] = None) -> None:
 # ── Private Helpers ───────────────────────────────────────────────────────────
 
 def _print_divider(name: str, question: str) -> None:
-    print(f"\n{'─' * 60}")
-    print(f"  [{name}]  {question}")
-    print(f"{'─' * 60}")
+    print(f"\n{'─' * 60}\n  [{name}]  {question}\n{'─' * 60}")
 
 
 def _print_trace(messages: list) -> None:

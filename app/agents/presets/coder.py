@@ -59,5 +59,4 @@ def build_coder_agent(model: str, provider: str):
         )
         return res
     except Exception as e:
-        print(f"Error building coder agent: {e}")
-        raise  
+        raise e
