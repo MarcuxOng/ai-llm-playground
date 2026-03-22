@@ -41,7 +41,7 @@ def run_once(agent, question: str, config: Optional[AgentConfig] = None) -> str:
     """
     try:
         if not question or not question.strip():
-            return "Error: Question cannot be empty."
+            raise ValueError("Question cannot be empty.")
         
         cfg = config or AgentConfig()
         if cfg.verbose:
@@ -50,8 +50,8 @@ def run_once(agent, question: str, config: Optional[AgentConfig] = None) -> str:
         try:
             result = agent.invoke({"messages": [("human", question)]})
         except Exception as e:
-            logger.error(f"Agent invocation failed: {e}")
-            return f"Error during agent execution: {str(e)}"
+            logger.exception("Agent invocation failed")
+            raise RuntimeError("Agent invocation failed") from e
 
         content = result["messages"][-1].content
 

@@ -94,7 +94,7 @@ def tools_service(model: str, prompt: str):
             # Execute all tool calls in parallel (sequentially in this loop)
             tool_responses = []
             for call in tool_calls:
-                logger.info(f"Executing tool: {call.name} with {call.args}")
+                logger.info("Executing tool: %s", call.name)
                 try:
                     # Map result to a FunctionResponse Part
                     result = call_tool(call.name, **call.args)

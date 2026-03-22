@@ -26,7 +26,6 @@ def get_weather(location: str, units: str = "metric") -> str:
         params = {
             "appid": settings.openweathermap_api_key,
             "units": units,
-            "timeout": 10
         }
 
         # Handle lat,lon coordinates vs city name
@@ -39,7 +38,8 @@ def get_weather(location: str, units: str = "metric") -> str:
 
         response = requests.get(
             "https://api.openweathermap.org/data/2.5/weather", 
-            params=params
+            params=params,
+            timeout=10
         )
         
         if response.status_code == 401:
