@@ -12,3 +12,9 @@ __all__ = [
     "build_research_agent",
     "build_analyst_agent",
 ]
+
+PRESETS = {
+    "coder": build_coder_agent,
+    "research": build_research_agent,
+    "analyst": build_analyst_agent,
+}

@@ -65,7 +65,7 @@ def groq_service(model: str, prompt: str):
 
     except Exception as e:
         logger.error(f"Error generating content with Groq: {e}")
-        return e
+        raise e
 
 
 def tools_service(model: str, prompt: str):

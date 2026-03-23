@@ -35,12 +35,17 @@ def read_file(path: str, max_chars: int = 4000) -> str:
         if not safe_path.is_file():
             return f"Error: File '{path}' not found."
             
+        if max_chars <= 0:
+            raise ValueError("max_chars must be positive.")
+
         with open(safe_path, "r", encoding="utf-8", errors="replace") as f:
-            content = f.read()
+            content = f.read(max_chars + 1)
             
         if len(content) > max_chars:
             return content[:max_chars] + f"\n\n[...Truncated to {max_chars} chars...]"
         return content
+    except ValueError:
+        raise
     except Exception as e:
         logger.error(f"Error reading file {path}: {e}")
         return f"Error: {str(e)}"

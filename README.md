@@ -90,8 +90,11 @@ GEMINI_API_KEY=your_key
 GROQ_API_KEY=your_key
 MISTRAL_API_KEY=your_key
 OPENROUTER_API_KEY=your_key
+ALPHA_VANTAGE_API_KEY=your_key
 OPENWEATHERMAP_API_KEY=your_key
 NEWS_API_KEY=your_key
+GOOGLE_SEARCH_API_KEY=your_key
+GOOGLE_CSE_ID=your_cse_id
 ```
 
 ### 4. Run the Application

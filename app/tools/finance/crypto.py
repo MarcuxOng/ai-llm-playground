@@ -58,10 +58,12 @@ def get_crypto_price(query: str) -> str:
         price = data.get(crypto_id, {}).get("usd")
         
         if price is not None:
-            return f"The current price of {query} ({crypto_id}) is ${price:,.2f} USD."
+            formatted_price = (f"{price:,.2f}" if price >= 1 else f"{price:,.8f}".rstrip("0").rstrip("."))
+            return f"The current price of {query} ({crypto_id}) is ${formatted_price} USD."
         else:
             logger.warning(f"Could not find price for {crypto_id} in CoinGecko response: {data}")
             return f"Could not retrieve a valid price for {query}. The symbol might be incorrect or the API is busy."
 
     except Exception as e:
-        raise e
+        logger.error(f"Error fetching crypto price: {e}")
+        return f"Error fetching crypto price: {e}"
