@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -22,7 +23,8 @@ async def get_openrouter_model():
 
 @router.post("/")
 async def openrouter(request: ProviderInput):
-    response = openrouter_service(
+    response = await asyncio.to_thread(
+        openrouter_service, 
         model=request.model, 
         prompt=request.prompt
     )
@@ -35,7 +37,8 @@ async def tools(request: ProviderInput):
     """
     OpenRouter with tool calling support.
     """
-    response = tools_service(
+    response = await asyncio.to_thread(
+        tools_service,
         model=request.model,
         prompt=request.prompt
     )

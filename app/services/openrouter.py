@@ -16,7 +16,8 @@ def list_openrouter_models():
         }
         res = requests.get(URL, headers=headers)
         if res.status_code != 200:
-            logger.error("Failed to fetch models:", res.text)
+            logger.error("Failed to fetch models: %s", res.text)
+            res.raise_for_status()
 
         models = res.json().get("data", [])
         free_models = sorted([m["id"] for m in models if m["id"].endswith(":free")])
@@ -107,7 +108,12 @@ def tools_service(model: str, prompt: str):
                 "tool_choice": "auto",
                 "temperature": 0.1,
             }
-            response = requests.post(url, headers=headers, json=payload)
+            response = requests.post(
+                url, 
+                headers=headers, 
+                json=payload,
+                timeout=30
+            )
             response.raise_for_status()
             data = response.json()
             
@@ -128,9 +134,12 @@ def tools_service(model: str, prompt: str):
             for tool_call in tool_calls:
                 function_name = tool_call["function"]["name"]
                 function_args = json.loads(tool_call["function"]["arguments"])
-                
-                logger.info(f"Executing OpenRouter tool: {function_name} with {function_args}")
                 try:
+                    function_args = json.loads(tool_call["function"]["arguments"])
+                    if not isinstance(function_args, dict):
+                        raise ValueError("Tool arguments must decode to an object")
+
+                    logger.info("Executing OpenRouter tool: %s", function_name)
                     result = call_tool(function_name, **function_args)
                     messages.append({
                         "tool_call_id": tool_call["id"],
@@ -147,7 +156,7 @@ def tools_service(model: str, prompt: str):
                         "content": f"Error: {str(e)}",
                     })
         
-        return "Error: Maximum tool-calling iterations reached."
+        raise RuntimeError("Maximum OpenRouter tool-calling iterations reached")
     except Exception as e:
         logger.error(f"Error in OpenRouter tools_service: {e}")
         raise e

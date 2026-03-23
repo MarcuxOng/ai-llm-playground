@@ -20,7 +20,6 @@ class AgentRunRequest(BaseModel):
     question: str
     model: str
     provider: str  # "gemini", "groq", "mistral", "openrouter"
-    verbose: bool = False
 
 
 class AgentRunResponse(BaseModel):
@@ -65,7 +64,7 @@ async def run_agent(request: AgentRunRequest):
             name=f"{request.preset.capitalize()} Agent", 
             model=request.model, 
             provider=request.provider,
-            verbose=request.verbose
+            verbose=False,
         )
         answer = await run_in_threadpool(
             run_once, 

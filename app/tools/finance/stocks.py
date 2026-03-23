@@ -50,8 +50,8 @@ def get_stock_price(symbol: str) -> str:
     
     except requests.RequestException as e:
         logger.error(f"Error fetching stock price: {e}")
-        raise e
+        return f"Error fetching stock price: {e}"
     except Exception as e:
         logger.error(f"Unknown error fetching stock price: {e}")
-        raise e
+        return f"Error fetching stock price: {e}"
     
