@@ -3,7 +3,8 @@ from pydantic import BaseModel
 
 from app.services.groq import (
     get_groq_models, 
-    groq_service
+    groq_service,
+    tools_service
 )
 
 router = APIRouter(prefix="/groq", tags=["Groq"])
@@ -26,4 +27,16 @@ async def groq(request: ProviderInput):
         prompt=request.prompt
     )
 
+    return response
+
+
+@router.post("/tools")
+async def tools(request: ProviderInput):
+    """
+    Groq with tool calling support.
+    """
+    response = tools_service(
+        model=request.model,
+        prompt=request.prompt
+    )
     return response
