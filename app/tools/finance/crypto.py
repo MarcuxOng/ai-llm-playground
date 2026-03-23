@@ -65,4 +65,5 @@ def get_crypto_price(query: str) -> str:
             return f"Could not retrieve a valid price for {query}. The symbol might be incorrect or the API is busy."
 
     except Exception as e:
-        raise e
+        logger.error(f"Error fetching crypto price: {e}")
+        return f"Error fetching crypto price: {e}"

@@ -133,7 +133,6 @@ def tools_service(model: str, prompt: str):
             # Execute tools
             for tool_call in tool_calls:
                 function_name = tool_call["function"]["name"]
-                function_args = json.loads(tool_call["function"]["arguments"])
                 try:
                     function_args = json.loads(tool_call["function"]["arguments"])
                     if not isinstance(function_args, dict):

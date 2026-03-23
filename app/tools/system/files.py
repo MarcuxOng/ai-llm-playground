@@ -44,6 +44,8 @@ def read_file(path: str, max_chars: int = 4000) -> str:
         if len(content) > max_chars:
             return content[:max_chars] + f"\n\n[...Truncated to {max_chars} chars...]"
         return content
+    except ValueError:
+        raise
     except Exception as e:
         logger.error(f"Error reading file {path}: {e}")
         return f"Error: {str(e)}"
