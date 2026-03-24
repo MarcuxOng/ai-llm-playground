@@ -2,11 +2,6 @@ import logging
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.services.agents import (
-    AgentRunRequest, 
-    AgentRunResponse,
-    run_agent_service, 
-)
 from app.services.groq import (
     get_groq_models, 
     groq_service,
@@ -48,18 +43,5 @@ async def tools(request: ProviderInput):
     response = tools_service(
         model=request.model,
         prompt=request.prompt
-    )
-    return response
-
-
-@router.post("/agents", response_model=AgentRunResponse)
-async def agents(request: AgentRunRequest):
-    """
-    Groq with agent support.
-    """
-    logger.info(f"Calling Groq agents with model: {request.model}, prompt: {request.prompt}")
-    response = await run_agent_service(
-        request, 
-        provider="groq"
     )
     return response
