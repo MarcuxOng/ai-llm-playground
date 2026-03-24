@@ -1,8 +1,16 @@
+import os
+import uvicorn
 from dotenv import load_dotenv
+
+from app.app import app
 
 load_dotenv()
 
-if __name__ == '__main__':
-    from app.entrypoint import main
-
-    main()
+port = int(os.environ.get("PORT", 8000))
+uvicorn.run(
+    "app.app:app",
+    host="0.0.0.0",
+    port=port,
+    reload=False,
+    log_level="info",
+)
