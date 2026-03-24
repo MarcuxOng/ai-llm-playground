@@ -21,7 +21,6 @@ Guidelines:
 # ── Factory ───────────────────────────────────────────────────────────────────
 
 TOOLS = [
-    "run_python_code", 
     "calculate", 
     "read_file", 
     "write_file",
