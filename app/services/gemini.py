@@ -22,7 +22,7 @@ def list_gemini_models():
     
     except Exception as e:
         logger.error(f"Error fetching Gemini models: {e}")
-        raise e
+        raise
 
 
 def gemini_service(model: str, prompt: str):
@@ -44,7 +44,7 @@ def gemini_service(model: str, prompt: str):
 
     except Exception as e:
         logger.error(f"Error generating Gemini content: {e}")
-        raise e
+        raise
     
 
 def tools_service(model: str, prompt: str):
@@ -121,4 +121,4 @@ def tools_service(model: str, prompt: str):
 
     except Exception as e:
         logger.error(f"Error in tools_service: {e}")
-        raise e
+        raise

@@ -28,7 +28,7 @@ def get_groq_models():
     
     except Exception as e:
         logger.error(f"Error fetching Groq models: {e}")
-        raise e
+        raise
 
 
 def groq_service(model: str, prompt: str):
@@ -65,7 +65,7 @@ def groq_service(model: str, prompt: str):
 
     except Exception as e:
         logger.error(f"Error generating content with Groq: {e}")
-        raise e
+        raise
 
 
 def tools_service(model: str, prompt: str):
@@ -123,4 +123,4 @@ def tools_service(model: str, prompt: str):
 
     except Exception as e:
         logger.error(f"Error in Groq tools_service: {e}")
-        raise e
+        raise
