@@ -1,4 +1,5 @@
 from app.tools.system import (
+    python_runner, 
     regex, 
     tokens, 
     math, 
@@ -7,6 +8,7 @@ from app.tools.system import (
 )
 
 system_tools = [
+    python_runner,
     regex,
     tokens,
     math,

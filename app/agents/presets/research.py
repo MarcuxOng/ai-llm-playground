@@ -51,4 +51,4 @@ def build_research_agent(model: str, provider: str):
         )
         return res
     except Exception as e:
-        raise
+        raise e

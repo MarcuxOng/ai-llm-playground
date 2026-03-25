@@ -3,6 +3,11 @@ import logging
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.services.agents import (
+    AgentRunRequest, 
+    AgentRunResponse,
+    run_agent_service, 
+)
 from app.services.openrouter import (
     list_openrouter_models,
     openrouter_service,
@@ -46,5 +51,18 @@ async def tools(request: ProviderInput):
         tools_service,
         model=request.model,
         prompt=request.prompt
+    )
+    return response
+
+
+@router.post("/agents", response_model=AgentRunResponse)
+async def agents(request: AgentRunRequest):
+    """
+    OpenRouter with agent support.
+    """
+    logger.info(f"Calling OpenRouter agents with model: {request.model}, prompt: {request.prompt}")
+    response = await run_agent_service(
+        request, 
+        provider="openrouter"
     )
     return response

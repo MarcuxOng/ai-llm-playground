@@ -42,4 +42,4 @@ def build_analyst_agent(model: str, provider: str):
         )
         return res
     except Exception as e:
-        raise
+        raise e

@@ -75,7 +75,7 @@ def run_once(agent, question: str, config: Optional[AgentConfig] = None) -> str:
         return answer
     except Exception as e:
         logger.error(f"Error in run_once: {e}")
-        raise
+        raise e
 
 
 def run_interactive(agent, config: Optional[AgentConfig] = None) -> None:

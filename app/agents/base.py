@@ -59,7 +59,7 @@ def build_llm(model: str, provider: str):
 
     except Exception as e:
         logger.error(f"Error initializing {provider} LLM: {e}")
-        raise
+        raise e
 
 
 def project_tools_to_langchain(tool_names: List[str]) -> List[BaseTool]:
@@ -130,4 +130,4 @@ def build_agent(
         )
     except Exception as e:
         logger.error(f"Error building agent: {e}")
-        raise
+        raise e
