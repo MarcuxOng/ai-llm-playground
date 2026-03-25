@@ -29,7 +29,7 @@ class APIKeyResponse(BaseModel):
 async def generate_key(
     name: str,
     db: Session = Depends(get_db),
-    # _=Depends(verify_master_key)
+    _=Depends(verify_master_key)
 ):
     """Generate a new, unique API key."""
     # Create raw key (e.g. "sk_play_...")
