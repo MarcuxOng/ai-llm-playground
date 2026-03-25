@@ -1,10 +1,9 @@
 import os
 import uvicorn
 from dotenv import load_dotenv
+load_dotenv()
 
 from app.app import app
-
-load_dotenv()
 
 port = int(os.environ.get("PORT", 8000))
 uvicorn.run(
