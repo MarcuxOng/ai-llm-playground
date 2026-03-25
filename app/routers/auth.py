@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models.api_key import APIKey
+from app.models import APIKey
 from app.utils.auth import hash_api_key, verify_master_key
 
 logger = logging.getLogger(__name__)

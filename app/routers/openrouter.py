@@ -1,8 +1,9 @@
 import asyncio
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from app.utils.auth import verify_api_key
 from app.services.openrouter import (
     list_openrouter_models,
     openrouter_service,
@@ -10,7 +11,11 @@ from app.services.openrouter import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/openrouter", tags=["OpenRouter"])
+router = APIRouter(
+    prefix="/openrouter", 
+    tags=["OpenRouter"],
+    dependencies=[Depends(verify_api_key)]
+)
 
 
 class ProviderInput(BaseModel):

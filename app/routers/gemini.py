@@ -1,7 +1,8 @@
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from app.utils.auth import verify_api_key
 from app.services.gemini import (
     gemini_service, 
     list_gemini_models, 
@@ -9,7 +10,11 @@ from app.services.gemini import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/gemini", tags=["Gemini"])
+router = APIRouter(
+    prefix="/gemini", 
+    tags=["Gemini"],
+    dependencies=[Depends(verify_api_key)]
+)
 
 
 class ProviderInput(BaseModel):
