@@ -1,7 +1,8 @@
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from app.utils.auth import verify_api_key
 from app.services.groq import (
     get_groq_models, 
     groq_service,
@@ -9,7 +10,11 @@ from app.services.groq import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/groq", tags=["Groq"])
+router = APIRouter(
+    prefix="/groq", 
+    tags=["Groq"],
+    dependencies=[Depends(verify_api_key)]
+)
 
 
 class ProviderInput(BaseModel):

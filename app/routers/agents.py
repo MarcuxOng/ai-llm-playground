@@ -1,6 +1,7 @@
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.utils.auth import verify_api_key
 from app.agents import PRESETS
 from app.services.agents import (
     AgentRunRequest, 
@@ -9,7 +10,11 @@ from app.services.agents import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/agents", tags=["Agents"])
+router = APIRouter(
+    prefix="/agents", 
+    tags=["Agents"],
+    dependencies=[Depends(verify_api_key)]
+)
 
 
 @router.get("/")
