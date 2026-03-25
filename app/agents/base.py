@@ -122,12 +122,12 @@ def build_agent(
         else:
             processed_tools = tools
 
-        llm = build_llm(model, provider)
-        return create_react_agent(
-            model=llm,
+        llm = create_react_agent(
+            model=build_llm(model, provider),
             tools=processed_tools,
             prompt=system_prompt,
         )
+        return llm
     except Exception as e:
         logger.error(f"Error building agent: {e}")
         raise
