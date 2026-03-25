@@ -1,5 +1,6 @@
 import logging
 from fastapi import HTTPException
+from functools import lru_cache
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
@@ -12,6 +13,7 @@ class AgentRunRequest(BaseModel):
     preset: str  # "coder", "research", or "analyst"
     prompt: str
     model: str
+    provider: str
 
 
 class AgentRunResponse(BaseModel):
@@ -21,7 +23,16 @@ class AgentRunResponse(BaseModel):
     provider: str
 
 
-async def run_agent_service(request: AgentRunRequest, provider: str) -> AgentRunResponse:
+@lru_cache(maxsize=32)
+def _get_cached_agent(preset: str, model: str, provider: str):
+    """
+    Cached agent factory to avoid rebuilding the agent on every request.
+    """
+    agent_factory = PRESETS[preset]
+    return agent_factory(model=model, provider=provider)
+
+
+async def run_agent_service(request: AgentRunRequest) -> AgentRunResponse:
     """
     Unified service for running agents with different providers.
     """
@@ -29,20 +40,20 @@ async def run_agent_service(request: AgentRunRequest, provider: str) -> AgentRun
         raise HTTPException(status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}")
     
     try:
-        logger.info(f"Running agent with preset: {request.preset}, model: {request.model}, provider: {provider}")
-        # Build the agent based on preset and provider
-        agent_factory = PRESETS[request.preset]
+        logger.info(f"Running agent with preset: {request.preset}, model: {request.model}, provider: {request.provider}")
+        # Build or get cached agent
         agent = await run_in_threadpool(
-            agent_factory, 
-            model=request.model, 
-            provider=provider
+            _get_cached_agent, 
+            request.preset,
+            request.model, 
+            request.provider
         )
         
         # Run the agent
         config = AgentConfig(
             name=f"{request.preset.capitalize()} Agent", 
             model=request.model, 
-            provider=provider,
+            provider=request.provider,
             verbose=False,
         )
         answer = await run_in_threadpool(
@@ -56,10 +67,10 @@ async def run_agent_service(request: AgentRunRequest, provider: str) -> AgentRun
             answer=answer,
             preset=request.preset,
             model=request.model,
-            provider=provider
+            provider=request.provider
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        logger.exception(f"Error running agent with {provider}")
-        raise HTTPException(status_code=500, detail=f"Agent execution failed for {provider}.") from e
+        logger.exception(f"Error running agent with {request.provider}")
+        raise HTTPException(status_code=500, detail=f"Agent execution failed for {request.provider}.") from e

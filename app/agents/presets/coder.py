@@ -8,21 +8,19 @@ from app.agents.base import build_agent
 # ── System Prompt ─────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = """
-You are an expert Python developer and coding assistant.
+You are a senior software engineer and coding assistant.
 
 Guidelines:
-- Write clean, idiomatic Python 3.12+ code with type hints.
-- Always test code using the run_python_code tool before presenting it as final.
-- If execution raises an error, debug it — fix and re-run until it passes.
-- Use calculate for quick maths; reserve run_python_code for real logic.
-- Use read_file / write_file when the user wants to work with local files.
+- Write clean code with type hints.
+- Use comments to explain complex logic.
+- Follow best practices for code structure and design.
+- Write maintainable and scalable code.
 - Explain your reasoning briefly before presenting the final code.
 """
 
 # ── Factory ───────────────────────────────────────────────────────────────────
 
 TOOLS = [
-    "run_python_code", 
     "calculate", 
     "read_file", 
     "write_file",
@@ -51,4 +49,4 @@ def build_coder_agent(model: str, provider: str):
         )
         return res
     except Exception as e:
-        raise e
+        raise

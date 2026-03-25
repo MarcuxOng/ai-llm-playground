@@ -29,7 +29,7 @@ def list_openrouter_models():
     
     except Exception as e:
         logger.error(f"Error fetching OpenRouter models: {e}")
-        raise e
+        raise
 
 
 def openrouter_service(model: str, prompt: str):
@@ -78,7 +78,7 @@ def openrouter_service(model: str, prompt: str):
 
     except Exception as e:
         logger.error(f"Error in OpenRouter service: {e}")
-        raise e
+        raise
 
 
 def tools_service(model: str, prompt: str):
@@ -158,4 +158,4 @@ def tools_service(model: str, prompt: str):
         raise RuntimeError("Maximum OpenRouter tool-calling iterations reached")
     except Exception as e:
         logger.error(f"Error in OpenRouter tools_service: {e}")
-        raise e
+        raise
