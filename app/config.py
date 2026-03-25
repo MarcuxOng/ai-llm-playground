@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     google_search_api_key: str
     google_cse_id: str
 
+    # Pinecone Configs
+    pinecone_namespace: str
+    pinecone_index_name: str
     pinecone_api_key: str
+    gemini_embedding_model: str = "gemini-embedding-001"
 
 settings = Settings()
