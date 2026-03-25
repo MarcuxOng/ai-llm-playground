@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class AgentRunRequest(BaseModel):
+    provider: str
+    model: str
     preset: str  # "coder", "research", or "analyst"
     prompt: str
-    model: str
-    provider: str
 
 
 class AgentRunResponse(BaseModel):
