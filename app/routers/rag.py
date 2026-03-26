@@ -1,6 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from app.services.rag import ingest_service, query_service
 from app.utils.auth import verify_api_key
@@ -30,14 +31,18 @@ async def ingest_documents(request: IngestRequest):
     Ingest text into the Pinecone vector store.
     """
     try:
-        num_chunks = ingest_service(request.text)
+        num_chunks = await run_in_threadpool(ingest_service, request.text)
         return {
             "message": "Successfully ingested text",
             "chunks": num_chunks,
         }
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        logger.error(f"Ingestion API error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Ingestion API error")
+        raise HTTPException(status_code=500, detail="Failed to ingest text.") from e
 
 
 @router.post("/query")
@@ -46,7 +51,8 @@ async def query_rag(request: QueryRequest):
     Query the RAG pipeline.
     """
     try:
-        response = query_service(
+        response = await run_in_threadpool(
+            query_service, 
             request.query, 
             request.model, 
             request.provider
@@ -55,6 +61,10 @@ async def query_rag(request: QueryRequest):
             "query": request.query,
             "response": response
         }
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        logger.error(f"RAG Query API error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("RAG query API error")
+        raise HTTPException(status_code=500, detail="Failed to execute RAG query.") from e

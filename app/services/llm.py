@@ -38,4 +38,4 @@ def build_llm(provider: str, model_name: str, temperature: float = 0.1):
         )
     else:
         logger.error(f"Unsupported provider: {provider}")
-        raise
+        raise ValueError(f"Unsupported provider: {provider}")
