@@ -8,19 +8,27 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+    # Platform Auth
+    database_url: str
+    master_api_key: str
+
+    # Provider API keys
     gemini_api_key: str
     groq_api_key: str
     openrouter_api_key: str
     mistral_api_key: str
 
+    #  Tools API keys
     alpha_vantage_api_key: str
     openweathermap_api_key: str
     news_api_key: str
-
     google_search_api_key: str
     google_cse_id: str
 
-    database_url: str
-    master_api_key: str
+    # Pinecone Configs
+    pinecone_namespace: str
+    pinecone_index_name: str
+    pinecone_api_key: str
+    gemini_embedding_model: str = "gemini-embedding-001"
 
 settings = Settings()

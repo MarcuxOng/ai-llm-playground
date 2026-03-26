@@ -7,59 +7,12 @@ import logging
 from typing import List, Union
 
 from langchain_core.tools import BaseTool, StructuredTool
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_groq import ChatGroq
-from langchain_mistralai import ChatMistralAI
-from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 
-from app.config import settings
+from app.services.llm import build_llm
 from app.tools import _REGISTRY
 
 logger = logging.getLogger(__name__)
-
-def build_llm(model: str, provider: str):
-    """
-    Instantiate an LLM from various providers.
-
-    Args:
-        model: Model string (e.g., 'gemini-3.1-flash', 'llama-3.3-70b-versatile').
-        provider: Provider name ('gemini', 'groq', 'mistral', 'openrouter').
-    """
-    try:
-        logger.info(f"Initializing {provider} LLM with model: {model}")
-        if provider == "gemini":
-            return ChatGoogleGenerativeAI(
-                model=model, 
-                google_api_key=settings.gemini_api_key,
-                convert_system_message_to_human=True,
-                temperature=0.1,
-            )
-        elif provider == "groq":
-            return ChatGroq(
-                model=model,
-                groq_api_key=settings.groq_api_key,
-                temperature=0.1,
-            )
-        elif provider == "mistral":
-            return ChatMistralAI(
-                model=model,
-                mistral_api_key=settings.mistral_api_key,
-                temperature=0.1,
-            )
-        elif provider == "openrouter":
-            return ChatOpenAI(
-                model=model,
-                openai_api_key=settings.openrouter_api_key,
-                openai_api_base="https://openrouter.ai/api/v1",
-                temperature=0.1,
-            )
-        else:
-            raise ValueError(f"Unsupported provider: {provider}")
-
-    except Exception as e:
-        logger.error(f"Error initializing {provider} LLM: {e}")
-        raise
 
 
 def project_tools_to_langchain(tool_names: List[str]) -> List[BaseTool]:
@@ -122,12 +75,12 @@ def build_agent(
         else:
             processed_tools = tools
 
-        llm = build_llm(model, provider)
-        return create_react_agent(
-            model=llm,
+        llm = create_react_agent(
+            model=build_llm(provider, model),
             tools=processed_tools,
             prompt=system_prompt,
         )
+        return llm
     except Exception as e:
         logger.error(f"Error building agent: {e}")
         raise
