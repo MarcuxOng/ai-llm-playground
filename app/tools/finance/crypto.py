@@ -4,10 +4,10 @@ Crypto Tool - A tool for fetching cryptocurrency prices using the CoinGecko API.
 import logging
 import requests
 
+from app.config import settings
 from app.tools import register
 
 logger = logging.getLogger(__name__)
-BASE_URL = "https://api.coingecko.com/api/v3"
 
 
 def find_crypto_id(query: str) -> str | None:
@@ -16,7 +16,7 @@ def find_crypto_id(query: str) -> str | None:
     """
     try:
         logger.info(f"Searching for CoinGecko ID for query: '{query}'")
-        search_url = f"{BASE_URL}/search"
+        search_url = f"{settings.crypto_base_url}/search"
         response = requests.get(search_url, params={"query": query}, timeout=5)
         response.raise_for_status()
         data = response.json()        
@@ -43,7 +43,7 @@ def get_crypto_price(query: str) -> str:
             return f"Error: Could not find a matching cryptocurrency for '{query}'. Please try a different name or symbol."
 
         logger.info(f"Fetching crypto price for: {query} (resolved to ID: {crypto_id}) from CoinGecko")
-        price_url = f"{BASE_URL}/simple/price"
+        price_url = f"{settings.crypto_base_url}/simple/price"
         params = {
             "ids": crypto_id,
             "vs_currencies": "usd"

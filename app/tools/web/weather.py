@@ -37,7 +37,7 @@ def get_weather(location: str, units: str = "metric") -> str:
             params["q"] = location
 
         response = requests.get(
-            "https://api.openweathermap.org/data/2.5/weather", 
+            settings.weather_base_url, 
             params=params,
             timeout=10
         )

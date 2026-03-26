@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def list_mistral_models():
     try:
         logger.info("Fetching Mistral models...")
-        url = "https://api.mistral.ai/v1/models"
+        url = f"{settings.mistral_base_url}/models"
         headers = {
             "Authorization": f"Bearer {settings.mistral_api_key}"
         }

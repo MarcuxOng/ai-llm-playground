@@ -5,13 +5,14 @@ Wikipedia tool — fetches summaries and facts from Wikipedia.
 import logging
 import requests
 
+from app.config import settings
 from app.tools import register
 
 logger = logging.getLogger(__name__)
 
 
 @register
-def get_wikipedia_summary(query: str, lang: str = "en") -> str:
+def get_wikipedia_summary(query: str) -> str:
     """
     Fetch a clean summary of a topic from Wikipedia's API.
     Use this for facts, history, or detailed descriptions of people, places, or concepts.
@@ -20,8 +21,8 @@ def get_wikipedia_summary(query: str, lang: str = "en") -> str:
     :param lang: Language code for the Wikipedia version (default is 'en').
     """
     try:
-        logger.info(f"Fetching Wikipedia summary for: {query} (lang: {lang})")
-        search_url = f"https://{lang}.wikipedia.org/w/api.php"
+        logger.info(f"Fetching Wikipedia summary for: {query}")
+        search_url = f"{settings.wikipedia_base_url}"
         headers = {
             "User-Agent": "AI-LLM-Playground/1.0 (https://github.com/your-repo; mailto:your-email@example.com) Requests/2.31.0"
         }

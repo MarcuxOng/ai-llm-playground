@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def list_openrouter_models():
     try: 
         logger.info("Fetching OpenRouter models...")
-        URL = "https://openrouter.ai/api/v1/models"
+        URL = f"{settings.openrouter_base_url}/models"
         headers = {
             "Authorization": f"Bearer {settings.openrouter_api_key}",
         }
@@ -36,7 +36,7 @@ def openrouter_service(model: str, prompt: str):
     try:
         logger.info(f"Generating content with OpenRouter model: {model}")
         response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
+            url=f"{settings.openrouter_base_url}/chat/completions",
             headers={
                 "Authorization": f"Bearer {settings.openrouter_api_key}",
                 "Content-Type": "application/json"
@@ -93,7 +93,7 @@ def tools_service(model: str, prompt: str):
         messages = [
             {"role": "user", "content": prompt}
         ]
-        url = "https://openrouter.ai/api/v1/chat/completions"
+        url = f"{settings.openrouter_base_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {settings.openrouter_api_key}",
             "Content-Type": "application/json"
