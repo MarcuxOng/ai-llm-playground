@@ -4,6 +4,7 @@ from app.tools.system import (
     math, 
     files, 
     time,
+    rag,
 )
 
 system_tools = [
@@ -12,4 +13,5 @@ system_tools = [
     math,
     files,
     time,
+    rag,
 ]

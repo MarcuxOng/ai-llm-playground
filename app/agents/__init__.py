@@ -3,6 +3,7 @@ from app.agents.runner import run_once, AgentConfig
 from app.agents.presets.coder import build_coder_agent
 from app.agents.presets.research import build_research_agent
 from app.agents.presets.analyst import build_analyst_agent
+from app.agents.presets.knowledge import build_knowledge_agent
 
 __all__ = [
     "build_agent",
@@ -11,10 +12,12 @@ __all__ = [
     "build_coder_agent",
     "build_research_agent",
     "build_analyst_agent",
+    "build_knowledge_agent",
 ]
 
 PRESETS = {
     "coder": build_coder_agent,
     "research": build_research_agent,
     "analyst": build_analyst_agent,
+    "knowledge": build_knowledge_agent,
 }
