@@ -11,7 +11,7 @@ from app.models import APIKey
 from app.utils.auth import hash_api_key, verify_master_key
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
 
 class APIKeyResponse(BaseModel):

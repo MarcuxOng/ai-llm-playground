@@ -11,7 +11,7 @@ from app.services.gemini import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
-    prefix="/gemini", 
+    prefix="/api/v1/gemini", 
     tags=["Gemini"],
     dependencies=[Depends(verify_api_key)]
 )

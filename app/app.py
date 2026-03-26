@@ -23,6 +23,6 @@ for router in all_routers:
     app.include_router(router)
 
 
-@app.get("/")
-async def root():
+@app.get("/api/v1/health")
+async def health():
     return {"message": "App is running"}

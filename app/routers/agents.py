@@ -11,7 +11,7 @@ from app.services.agents import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
-    prefix="/agents", 
+    prefix="/api/v1/agents", 
     tags=["Agents"],
     dependencies=[Depends(verify_api_key)]
 )

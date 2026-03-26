@@ -9,7 +9,7 @@ from app.utils.auth import verify_api_key
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
-    prefix="/rag",
+    prefix="/api/v1/rag",
     tags=["RAG"],
     dependencies=[Depends(verify_api_key)]
 )
