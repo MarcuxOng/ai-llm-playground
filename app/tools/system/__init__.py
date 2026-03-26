@@ -1,4 +1,5 @@
 from app.tools.system import (
+    code_runner,
     regex, 
     tokens, 
     math, 
@@ -8,6 +9,7 @@ from app.tools.system import (
 )
 
 system_tools = [
+    code_runner,
     regex,
     tokens,
     math,
