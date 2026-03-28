@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.utils.auth import verify_api_key
@@ -40,6 +40,8 @@ async def run_agent_stream(request: AgentRunRequest):
     """
     Endpoint for running agents with streaming responses.
     """
+    if request.preset not in PRESETS:
+        raise HTTPException(status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}")
     logger.info(f"Starting agent stream with provider: {request.provider}, model: {request.model}")
     response = StreamingResponse(
         run_agent_stream_service(request), 

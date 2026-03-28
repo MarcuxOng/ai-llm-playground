@@ -3,7 +3,7 @@ A coding-focused ReAct agent.
 """
 
 from app.agents.base import build_agent
-
+from app.config import settings
 
 # ── System Prompt ─────────────────────────────────────────────────────────────
 
@@ -22,13 +22,15 @@ Guidelines:
 # ── Factory ───────────────────────────────────────────────────────────────────
 
 TOOLS = [
-    "execute_code",
     "calculate", 
     "read_file", 
     "write_file",
     "test_regex",
     "count_tokens",
 ]
+
+if settings.enable_execute_code:
+    TOOLS.insert(0, "execute_code")
 
 
 def build_coder_agent(model: str, provider: str):

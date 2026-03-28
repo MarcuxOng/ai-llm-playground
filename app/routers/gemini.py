@@ -56,18 +56,21 @@ async def tools(request: ProviderInput):
     return response
 
 
-@router.post("/stream")
+@router.post("/stream", response_class=StreamingResponse)
 async def gemini_stream(request: ProviderInput):
     """
     Stream Gemini response
     """
     logger.info(f"Starting Gemini stream with model: {request.model}, prompt: {request.prompt}")
     async def event_generator():
-        async for chunk in gemini_stream_service(
-            request.model, 
-            request.prompt
-        ):
-            yield f"data: {json.dumps({'chunk': chunk})}\n\n"
-        yield "data: [DONE]\n\n"
-
+        try:
+            async for chunk in gemini_stream_service(
+                request.model, 
+                request.prompt
+            ):
+                yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            logger.exception("Error in Gemini stream")
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
     return StreamingResponse(event_generator(), media_type="text/event-stream")

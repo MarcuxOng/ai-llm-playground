@@ -127,13 +127,14 @@ def tools_service(model: str, prompt: str):
 async def gemini_stream_service(model: str, prompt: str):
     try:
         logger.info(f"Starting Gemini streaming generation with model: {model}")
-        response = client.models.generate_content_stream(
-            model=model, 
-            contents=prompt
-        )
-        for chunk in response:
-            if chunk.text:
-                yield chunk.text
+        async with genai.Client(api_key=settings.gemini_api_key).aio as async_client:
+            response = async_client.models.generate_content_stream(
+                model=model,
+                contents=prompt
+            )
+            async for chunk in response:
+                if chunk.text:
+                    yield chunk.text
     except Exception as e:
         logger.error(f"Error in Gemini streaming service: {e}")
         raise

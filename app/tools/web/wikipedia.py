@@ -18,7 +18,6 @@ def get_wikipedia_summary(query: str) -> str:
     Use this for facts, history, or detailed descriptions of people, places, or concepts.
 
     :param query: The search term or topic (e.g., 'Quantum mechanics').
-    :param lang: Language code for the Wikipedia version (default is 'en').
     """
     try:
         logger.info(f"Fetching Wikipedia summary for: {query}")

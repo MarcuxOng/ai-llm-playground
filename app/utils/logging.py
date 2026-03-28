@@ -38,5 +38,6 @@ def setup_logging():
 
     logging.basicConfig(
         level=level, 
-        handlers=[handler]
+        handlers=[handler],
+        force=True
     )
