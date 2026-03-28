@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # Platform Auth
     database_url: str
     master_api_key: str
-    enable_execute_code: bool = True
+    enable_execute_code: bool = False
 
     # Provider API keys
     gemini_api_key: str
