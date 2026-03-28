@@ -12,7 +12,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content={
             "detail": exc.detail,  
             "error": exc.detail, 
-            "path": str(request.url)
+            "path": request.url.path,
         }
     )
 
@@ -24,6 +24,6 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         content={
             "error": "Internal server error", 
             "error": "Internal server error", 
-            "path": str(request.url)
+            "path": request.url.path,
         }
     )

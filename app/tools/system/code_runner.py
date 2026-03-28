@@ -37,6 +37,9 @@ def execute_code(code: str, language: str = "python") -> str:
     :param language: Programming language. Supported values: 'python', 'javascript', 'cpp', 'c', 'go', 'rust', 'ruby', 'php', 'java'. 
     Defaults to 'python'
     """
+    if not settings.enable_execute_code:
+        return "Error: Code execution is disabled by server configuration."
+
     lang_lower = language.lower()
     compiler = LANGUAGE_TO_COMPILER.get(lang_lower)
 
