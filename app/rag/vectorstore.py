@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from langchain_core.documents import Document
 from pinecone import Pinecone
@@ -19,16 +20,18 @@ class PineconeStore:
     def add_documents(self, documents: List[Document]):
         """Add LangChain documents to Pinecone."""
         texts = [doc.page_content for doc in documents]
-        metadatas = [doc.metadata or {} for doc in documents]
-        for i, meta in enumerate(metadatas):
-            meta["text"] = texts[i] # Store text for retrieval
+        metadatas = []
+        for i, doc in enumerate(documents):
+            meta = dict(doc.metadata) if doc.metadata else {}
+            meta["text"] = texts[i]  # Store text for retrieval
             meta["namespace"] = self.namespace
+            metadatas.append(meta)
         embeddings = self.embedding.embed_documents(texts)
         
         vectors = []
-        for i, (text, meta, vector) in enumerate(zip(texts, metadatas, embeddings)):
+        for i, (text, meta, vector) in enumerate(zip(texts, metadatas, embeddings, strict=True)):
             vectors.append({
-                "id": f"{self.namespace}_{i}_{hash(text)}",
+                "id": f"{self.namespace}_{i}_{hashlib.md5(text.encode()).hexdigest()[:16]}",
                 "values": vector,
                 "metadata": meta
             })

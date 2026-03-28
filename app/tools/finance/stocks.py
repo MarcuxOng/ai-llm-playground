@@ -19,7 +19,7 @@ def get_stock_price(symbol: str) -> str:
     """
     try:
         logger.info(f"Fetching stock price for: {symbol}")
-        url = f"https://www.alphavantage.co/query"
+        url = settings.alpha_vantage_base_url
         params = {
             "function": "GLOBAL_QUOTE",
             "symbol": symbol,

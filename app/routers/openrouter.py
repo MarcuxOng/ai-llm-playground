@@ -12,7 +12,7 @@ from app.services.openrouter import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
-    prefix="/openrouter", 
+    prefix="/api/v1/openrouter", 
     tags=["OpenRouter"],
     dependencies=[Depends(verify_api_key)]
 )

@@ -14,7 +14,7 @@ client = Groq(api_key=settings.groq_api_key)
 def get_groq_models():
     try:
         logger.info("Fetching Groq models...")
-        url = "https://api.groq.com/openai/v1/models"
+        url = f"{settings.groq_base_url}/models"
         headers = {
             "Authorization": f"Bearer {settings.groq_api_key}",
             "Content-Type": "application/json"

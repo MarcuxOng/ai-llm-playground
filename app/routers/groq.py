@@ -11,7 +11,7 @@ from app.services.groq import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
-    prefix="/groq", 
+    prefix="/api/v1/groq", 
     tags=["Groq"],
     dependencies=[Depends(verify_api_key)]
 )

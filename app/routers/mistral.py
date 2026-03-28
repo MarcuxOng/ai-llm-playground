@@ -11,7 +11,7 @@ from app.services.mistral import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
-    prefix="/mistral", 
+    prefix="/api/v1/mistral", 
     tags=["Mistral"],
     dependencies=[Depends(verify_api_key)]
 )

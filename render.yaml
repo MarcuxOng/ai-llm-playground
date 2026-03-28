@@ -37,3 +37,4 @@ services:
         sync: false
     dockerContext: .
     dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health

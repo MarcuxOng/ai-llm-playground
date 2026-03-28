@@ -31,4 +31,15 @@ class Settings(BaseSettings):
     pinecone_api_key: str
     gemini_embedding_model: str = "gemini-embedding-001"
 
+    # Base URLs
+    alpha_vantage_base_url: str = "https://www.alphavantage.co/query"
+    crypto_base_url: str = "https://api.coingecko.com/api/v3"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+    mistral_base_url: str = "https://api.mistral.ai/v1"
+    news_base_url: str = "https://newsapi.org/v2/everything"
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    wandbox_base_url: str = "https://wandbox.org/api/compile.json"
+    weather_base_url: str = "https://api.openweathermap.org/data/2.5/weather"
+    wikipedia_base_url: str = "https://en.wikipedia.org/w/api.php"
+
 settings = Settings()

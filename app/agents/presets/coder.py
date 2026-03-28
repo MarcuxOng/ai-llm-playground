@@ -9,6 +9,7 @@ from app.agents.base import build_agent
 
 SYSTEM_PROMPT = """
 You are a senior software engineer and coding assistant.
+You can write and execute code in Python, JavaScript, Go, Rust, C++, and more.
 
 Guidelines:
 - Write clean code with type hints.
@@ -21,6 +22,7 @@ Guidelines:
 # ── Factory ───────────────────────────────────────────────────────────────────
 
 TOOLS = [
+    "execute_code",
     "calculate", 
     "read_file", 
     "write_file",

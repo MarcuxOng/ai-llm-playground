@@ -33,9 +33,9 @@ def build_llm(provider: str, model_name: str, temperature: float = 0.1):
         return ChatOpenAI(
             model=model_name, 
             openai_api_key=settings.openrouter_api_key, 
-            openai_api_base="https://openrouter.ai/api/v1",
+            openai_api_base=settings.openrouter_base_url,
             temperature=temperature
         )
     else:
         logger.error(f"Unsupported provider: {provider}")
-        raise
+        raise ValueError(f"Unsupported provider: {provider}")
