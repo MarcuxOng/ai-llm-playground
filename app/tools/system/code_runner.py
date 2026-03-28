@@ -95,7 +95,7 @@ def execute_code(code: str, language: str = "python") -> str:
         return f"Error from code execution service: {e.response.status_code}"
     except httpx.RequestError as e:
         logger.error(f"Wandbox API request error: {e}")
-        return f"Could not reach code execution service: {str(e)}"
+        return f"Could not reach code execution service: {e!s}"
     except Exception as e:
         logger.error(f"Unexpected error in execute_code: {e}")
-        return f"Error during execution: {str(e)}"
+        return f"Error during execution: {e!s}"

@@ -12,7 +12,6 @@ def search_knowledge_base(query: str) -> str:
     Search the private knowledge base for relevant information using vector similarity.
     
     :param query: The search query to look up in the knowledge base.
-    :param namespace: The organizational namespace to search within (default: 'default').
     """
     try:
         logger.info(f"Tool calling RAG search for query: {query}")

@@ -31,7 +31,6 @@ def get_news(query: str, page_size: int = 5, language: str = "en") -> str:
             "language": language,
             "sortBy": "publishedAt",
             "apiKey": settings.news_api_key,
-            "timeout": 10
         }
 
         response = requests.get(url, params=params, timeout=10)
