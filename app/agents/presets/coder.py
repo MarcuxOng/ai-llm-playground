@@ -9,8 +9,15 @@ from app.config import settings
 
 SYSTEM_PROMPT = """
 You are a senior software engineer and coding assistant.
-You can write and execute code in Python, JavaScript, Go, Rust, C++, and more.
+You can write code in Python, JavaScript, Go, Rust, C++, and more.
+"""
 
+if settings.enable_execute_code:
+    SYSTEM_PROMPT += "\nYou can execute code when needed.\n"
+else:
+    SYSTEM_PROMPT += "\nCode execution is currently disabled.\n"
+
+SYSTEM_PROMPT += """
 Guidelines:
 - Write clean code with type hints.
 - Use comments to explain complex logic.

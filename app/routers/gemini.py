@@ -70,7 +70,8 @@ async def gemini_stream(request: ProviderInput):
             ):
                 yield f"data: {json.dumps({'chunk': chunk})}\n\n"
             yield "data: [DONE]\n\n"
-        except Exception as e:
+        except Exception:
             logger.exception("Error in Gemini stream")
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'content': 'Stream failed'})}\n\n"
+            yield "data: [DONE]\n\n"
     return StreamingResponse(event_generator(), media_type="text/event-stream")
