@@ -33,4 +33,9 @@ for router in all_routers:
 
 @app.get("/api/v1/health")
 async def health():
+    return {"message": "Health check passed"}
+
+
+@app.get("/")
+async def root():
     return {"message": "App is running"}
