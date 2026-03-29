@@ -109,6 +109,7 @@ async def run_agent_stream_service(request: AgentRunRequest) -> AsyncGenerator[s
                 yield f"data: {json.dumps({'type': 'tool_end', 'tool': event['name'], 'output': event['data'].get('output')}, default=str)}\n\n"
         
         yield f"data: {json.dumps({'type': 'done', 'thread_id': None})}\n\n"
+        yield "data: [DONE]\n\n"
     except Exception as e:  
         logger.exception(f"Error in streaming agent {request.provider}")
         yield f"data: {json.dumps({'type': 'error', 'content': 'Stream failed'})}\n\n"
