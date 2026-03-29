@@ -1,14 +1,16 @@
 import asyncio
 import logging
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
-from app.utils.auth import verify_api_key
 from app.services.openrouter import (
     list_openrouter_models,
     openrouter_service,
     tools_service
 )
+from app.utils.auth import verify_api_key
+from app.utils.response import APIResponse
+from app.utils.limiter import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
@@ -23,33 +25,42 @@ class ProviderInput(BaseModel):
     prompt: str
 
 
-@router.get("/models")
+@router.get("/models", response_model=APIResponse)
 async def get_openrouter_model():
     logger.info("Fetching available OpenRouter models")
-    return list_openrouter_models()
+    models = list_openrouter_models()
+    return APIResponse(data=models)
 
 
-@router.post("/")
-async def openrouter(request: ProviderInput):
-    logger.info(f"Calling OpenRouter API with model: {request.model}, prompt: {request.prompt}")
+@router.post("/", response_model=APIResponse)
+@limiter.limit("30/minute")
+async def openrouter(
+    request: Request, 
+    body: ProviderInput
+):
+    logger.info(f"Calling OpenRouter API with model: {body.model}, prompt: {body.prompt}")
     response = await asyncio.to_thread(
         openrouter_service, 
-        model=request.model, 
-        prompt=request.prompt
+        model=body.model, 
+        prompt=body.prompt
     )
 
-    return response
+    return APIResponse(data=response)
 
 
-@router.post("/tools")
-async def tools(request: ProviderInput):
+@router.post("/tools", response_model=APIResponse)
+@limiter.limit("15/minute")
+async def tools(
+    request: Request, 
+    body: ProviderInput
+):
     """
     OpenRouter with tool calling support.
     """
-    logger.info(f"Calling OpenRouter tools with model: {request.model}, prompt: {request.prompt}")
+    logger.info(f"Calling OpenRouter tools with model: {body.model}, prompt: {body.prompt}")
     response = await asyncio.to_thread(
         tools_service,
-        model=request.model,
-        prompt=request.prompt
+        model=body.model,
+        prompt=body.prompt
     )
-    return response
+    return APIResponse(data=response)
