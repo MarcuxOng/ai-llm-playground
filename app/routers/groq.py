@@ -37,7 +37,7 @@ async def groq(
     request: Request, 
     body: ProviderInput
 ):
-    logger.info(f"Calling Groq API with model: {body.model}, prompt: {body.prompt}")
+    logger.info(f"Calling Groq API with model: {body.model}")
     response = groq_service(
         model=body.model, 
         prompt=body.prompt
@@ -55,7 +55,7 @@ async def tools(
     """
     Groq with tool calling support.
     """
-    logger.info(f"Calling Groq tools with model: {body.model}, prompt: {body.prompt}")
+    logger.info(f"Calling Groq tools with model: {body.model}")
     response = tools_service(
         model=body.model,
         prompt=body.prompt
