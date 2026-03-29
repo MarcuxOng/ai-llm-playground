@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
-from app.db import Base, engine
+from app.database.db import Base, engine
 from app.routers import all_routers
 from app.utils.exceptions import http_exception_handler, unhandled_exception_handler
 from app.utils.logging import setup_logging

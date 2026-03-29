@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.db import get_db
-from app.models import APIKey
+from app.database.db import get_db
+from app.database.models import APIKey
 from app.utils.auth import hash_api_key, verify_master_key
 
 logger = logging.getLogger(__name__)

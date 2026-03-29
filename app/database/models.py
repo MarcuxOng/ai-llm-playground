@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime
 
-from app.db import Base
+from app.database.db import Base
 
 class APIKey(Base):
     __tablename__ = "playground_v1_api_keys"
