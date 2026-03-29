@@ -1,10 +1,14 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
-from app.db import Base, engine
+from app.database.db import Base, engine
 from app.routers import all_routers
 from app.utils.exceptions import http_exception_handler, unhandled_exception_handler
 from app.utils.logging import setup_logging
+from app.utils.limiter import limiter
+from app.utils.response import APIResponse
 
 # Setup logging before FastAPI instance
 setup_logging()
@@ -23,6 +27,8 @@ app = FastAPI(
 )
 
 # Register custom exception handlers
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
@@ -31,11 +37,15 @@ for router in all_routers:
     app.include_router(router)
 
 
-@app.get("/api/v1/health")
+@app.get("/api/v1/health", response_model=APIResponse)
 async def health():
-    return {"message": "Health check passed"}
+    return APIResponse(
+        data={"message": "Health check passed"}
+    )
 
 
-@app.get("/")
+@app.get("/", response_model=APIResponse)
 async def root():
-    return {"message": "App is running"}
+    return APIResponse(
+        data={"message": "App is running"}
+    )

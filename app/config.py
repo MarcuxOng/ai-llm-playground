@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str
     mistral_api_key: str
 
-    #  Tools API keys
+    # Tools API keys
     alpha_vantage_api_key: str
     openweathermap_api_key: str
     news_api_key: str

@@ -2,28 +2,38 @@ import logging
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 
+from app.utils.response import APIResponse
+
 logger = logging.getLogger(__name__)
 
 
 async def http_exception_handler(request: Request, exc: HTTPException):
     logger.warning(f"HTTP exception for {request.url.path}: {exc}")
+    response = APIResponse(
+        success=False,
+        error=str(exc.detail),
+        meta={
+            "path": request.url.path, 
+            "status_code": exc.status_code
+        }
+    )
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "detail": exc.detail,  
-            "error": exc.detail, 
-            "path": str(request.url)
-        }
+        content=response.model_dump()
     )
 
 
 async def unhandled_exception_handler(request: Request, exc: Exception):
     logger.exception(f"Unhandled exception for {request.url.path}: {exc}")
+    response = APIResponse(
+        success=False,
+        error="Internal server error",
+        meta={
+            "path": request.url.path, 
+            "status_code": 500
+        }
+    )
     return JSONResponse(
         status_code=500,
-        content={
-            "error": "Internal server error", 
-            "error": "Internal server error", 
-            "path": str(request.url)
-        }
+        content=response.model_dump()
     )

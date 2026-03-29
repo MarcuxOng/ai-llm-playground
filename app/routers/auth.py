@@ -2,13 +2,15 @@ import secrets
 import logging
 
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.db import get_db
-from app.models import APIKey
+from app.database.db import get_db
+from app.database.models import APIKey
 from app.utils.auth import hash_api_key, verify_master_key
+from app.utils.limiter import limiter
+from app.utils.response import APIResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
@@ -25,8 +27,10 @@ class APIKeyResponse(BaseModel):
         from_attributes = True
 
 
-@router.post("/keys/generate", response_model=dict)
+@router.post("/keys/generate", response_model=APIResponse)
+@limiter.limit("5/minute")
 async def generate_key(
+    request: Request,
     name: str,
     db: Session = Depends(get_db),
     _=Depends(verify_master_key)
@@ -47,23 +51,24 @@ async def generate_key(
     db.refresh(new_key)
 
     logger.info(f"Generated new API key: {name}")
-    return {
+    return APIResponse(data={
         "api_key": raw_key, 
         "name": name,
         "note": "Save this key now — it cannot be recovered later."
-    }
+    })
 
 
-@router.get("/keys", response_model=list[APIKeyResponse])
+@router.get("/keys", response_model=APIResponse[list[APIKeyResponse]])
 async def list_keys(
     db: Session = Depends(get_db),
     _=Depends(verify_master_key)
 ):
     """List all registered API keys."""
-    return db.query(APIKey).all()
+    keys = db.query(APIKey).all()
+    return APIResponse(data=keys)
 
 
-@router.delete("/keys/{key_id}")
+@router.delete("/keys/{key_id}", response_model=APIResponse)
 async def revoke_key(
     key_id: str,
     db: Session = Depends(get_db),
@@ -80,4 +85,4 @@ async def revoke_key(
     db.commit()
 
     logger.info(f"Revoked API key ID: {key_id}")
-    return {"message": f"Successfully revoked key: {api_key_record.name}"}
+    return APIResponse(data={"message": f"Successfully revoked key: {api_key_record.name}"})

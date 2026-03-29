@@ -5,8 +5,8 @@ from fastapi import Header, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.db import get_db
-from app.models import APIKey
+from app.database.db import get_db
+from app.database.models import APIKey
 
 
 logger = logging.getLogger(__name__)

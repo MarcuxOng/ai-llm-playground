@@ -84,6 +84,7 @@ Thumbs.db
 misc/
 /.github/AGENT.md
 conductor/
+.gemini/
 
 # mypy
 .mypy_cache/

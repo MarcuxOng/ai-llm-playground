@@ -1,8 +1,7 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from app.utils.auth import verify_api_key
 from app.agents import PRESETS
 from app.services.agents import (
     AgentRunRequest, 
@@ -10,6 +9,9 @@ from app.services.agents import (
     run_agent_service, 
     run_agent_stream_service
 )
+from app.utils.auth import verify_api_key
+from app.utils.response import APIResponse
+from app.utils.limiter import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
@@ -19,32 +21,40 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/", response_model=APIResponse)
 async def get_presets():
     """List available agent presets."""
-    return {"presets": list(PRESETS.keys())}
+    return APIResponse(data={"presets": list(PRESETS.keys())})
 
 
-@router.post("/run", response_model=AgentRunResponse)
-async def run_agent(request: AgentRunRequest):
+@router.post("/run", response_model=APIResponse[AgentRunResponse])
+@limiter.limit("20/minute")
+async def run_agent(
+    request: Request, 
+    body: AgentRunRequest
+):
     """
     Unified endpoint for running agents with any supported provider.
     """
-    logger.info(f"Calling agents API with provider: {request.provider}, model: {request.model}")
-    response = await run_agent_service(request)
-    return response
+    logger.info(f"Calling agents API with provider: {body.provider}, model: {body.model}")
+    response = await run_agent_service(body)
+    return APIResponse(data=response)
 
 
 @router.post("/run/stream")
-async def run_agent_stream(request: AgentRunRequest):
+@limiter.limit("20/minute")
+async def run_agent_stream(
+    request: Request, 
+    body: AgentRunRequest
+):
     """
     Endpoint for running agents with streaming responses.
     """
-    if request.preset not in PRESETS:
+    if body.preset not in PRESETS:
         raise HTTPException(status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}")
-    logger.info(f"Starting agent stream with provider: {request.provider}, model: {request.model}")
+    logger.info(f"Starting agent stream with provider: {body.provider}, model: {body.model}")
     response = StreamingResponse(
-        run_agent_stream_service(request), 
+        run_agent_stream_service(body), 
         media_type="text/event-stream"
     )
     return response

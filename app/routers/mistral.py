@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from app.utils.auth import verify_api_key
@@ -8,6 +8,8 @@ from app.services.mistral import (
     mistral_service,
     tools_service
 )
+from app.utils.response import APIResponse
+from app.utils.limiter import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
@@ -22,31 +24,40 @@ class ProviderInput(BaseModel):
     prompt: str
 
 
-@router.get("/models")
+@router.get("/models", response_model=APIResponse)
 async def get_mistral_model():
     logger.info("Fetching available Mistral models")
-    return list_mistral_models()
+    models = list_mistral_models()
+    return APIResponse(data=models)
 
 
-@router.post("/")
-async def mistral(request: ProviderInput):
-    logger.info(f"Calling Mistral API with model: {request.model}, prompt: {request.prompt}")
+@router.post("/", response_model=APIResponse)
+@limiter.limit("30/minute")
+async def mistral(
+    request: Request, 
+    body: ProviderInput
+):
+    logger.info(f"Calling Mistral API with model: {body.model}, prompt: {body.prompt}")
     response = mistral_service(
-        model=request.model,
-        prompt=request.prompt
+        model=body.model,
+        prompt=body.prompt
     )
 
-    return response
+    return APIResponse(data=response)
 
 
-@router.post("/tools")
-async def tools(request: ProviderInput):
+@router.post("/tools", response_model=APIResponse)
+@limiter.limit("15/minute")
+async def tools(
+    request: Request, 
+    body: ProviderInput
+):
     """
     Mistral with tool calling support.
     """
-    logger.info(f"Calling Mistral tools with model: {request.model}, prompt: {request.prompt}")
+    logger.info(f"Calling Mistral tools with model: {body.model}, prompt: {body.prompt}")
     response = tools_service(
-        model=request.model,
-        prompt=request.prompt
+        model=body.model,
+        prompt=body.prompt
     )
-    return response
+    return APIResponse(data=response)

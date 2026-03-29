@@ -104,11 +104,12 @@ async def run_agent_stream_service(request: AgentRunRequest) -> AsyncGenerator[s
                 if chunk:
                     yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
             elif kind == "on_tool_start":
-                yield f"data: {json.dumps({'type': 'tool_start', 'tool': event['name']})}\n\n"
+                yield f"data: {json.dumps({'type': 'tool_start', 'tool': event['name'], 'input': event['data'].get('input')})}\n\n"
             elif kind == "on_tool_end":
-                yield f"data: {json.dumps({'type': 'tool_end', 'tool': event['name']})}\n\n"
+                yield f"data: {json.dumps({'type': 'tool_end', 'tool': event['name'], 'output': event['data'].get('output')})}\n\n"
         
-        yield "data: [DONE]\n\n"
+        yield f"data: {json.dumps({'type': 'done', 'thread_id': None})}\n\n"
     except Exception as e:
         logger.exception(f"Error in streaming agent {request.provider}")
         yield f"data: {json.dumps({'type': 'error', 'content': str(e)})}\n\n"
+        yield f"data: {json.dumps({'type': 'done', 'thread_id': None})}\n\n"
