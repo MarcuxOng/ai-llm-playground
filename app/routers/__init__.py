@@ -5,9 +5,11 @@ from app.routers.groq import router as groq_router
 from app.routers.mistral import router as mistral_router
 from app.routers.openrouter import router as openrouter_router
 from app.routers.rag import router as rag_router
+from app.routers.threads import router as threads_router
 
 all_routers = [
     auth_router,
+    threads_router,
     agents_router,
     rag_router,
     gemini_router,
