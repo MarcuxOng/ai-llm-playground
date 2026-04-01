@@ -22,13 +22,18 @@ TOOLS = [
     "web_search",
 ]
 
-def build_analyst_agent(model: str, provider: str):
+def build_analyst_agent(
+    model: str, 
+    provider: str, 
+    checkpointer=None,
+):
     """
     Build and return an analyst ReAct agent.
 
     Args:
         model: Model name.
         provider: Provider name.
+        checkpointer: Optional LangGraph checkpointer.
 
     Returns:
         A compiled LangGraph agent.
@@ -39,6 +44,7 @@ def build_analyst_agent(model: str, provider: str):
             system_prompt=SYSTEM_PROMPT,
             model=model,
             provider=provider,
+            checkpointer=checkpointer,
         )
         return res
     except Exception:

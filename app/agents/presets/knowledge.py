@@ -33,13 +33,18 @@ TOOLS = [
 ]
 
 
-def build_knowledge_agent(model: str, provider: str):
+def build_knowledge_agent(
+    model: str, 
+    provider: str, 
+    checkpointer=None,
+):
     """
     Build and return a Knowledge/RAG ReAct agent.
 
     Args:
         model: Model name.
         provider: Provider name.
+        checkpointer: Optional LangGraph checkpointer.
 
     Returns:
         A compiled LangGraph agent.
@@ -50,6 +55,7 @@ def build_knowledge_agent(model: str, provider: str):
             system_prompt=SYSTEM_PROMPT,
             model=model,
             provider=provider,
+            checkpointer=checkpointer,
         )
         return res
     except Exception:
