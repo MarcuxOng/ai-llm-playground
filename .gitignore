@@ -82,9 +82,9 @@ Thumbs.db
 
 # Project specific
 misc/
-/.github/AGENT.md
 conductor/
 .gemini/
+.claude/
 
 # mypy
 .mypy_cache/

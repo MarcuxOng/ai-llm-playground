@@ -54,6 +54,7 @@ def build_agent(
     system_prompt: str,
     model: str,
     provider: str,
+    checkpointer=None,
 ):
     """
     Build and return a compiled LangGraph ReAct agent.
@@ -79,6 +80,7 @@ def build_agent(
             model=build_llm(provider, model),
             tools=processed_tools,
             prompt=system_prompt,
+            checkpointer=checkpointer,
         )
         return llm
     except Exception as e:

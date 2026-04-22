@@ -27,7 +27,12 @@ class AgentConfig:
     verbose: bool = True
 
 
-def run_once(agent, question: str, config: Optional[AgentConfig] = None) -> str:
+def run_once(
+    agent, 
+    question: str, 
+    config: Optional[AgentConfig] = None, 
+    lg_config: Optional[dict] = None
+) -> str:
     """
     Send a single question to the agent and return its final answer.
 
@@ -35,6 +40,7 @@ def run_once(agent, question: str, config: Optional[AgentConfig] = None) -> str:
         agent:    A compiled LangGraph ReAct graph.
         question: The user's input message.
         config:   Optional AgentConfig for logging behaviour.
+        lg_config:  Optional LangGraph config (e.g. for thread_id).
 
     Returns:
         The agent's final response as a plain string.
@@ -48,7 +54,7 @@ def run_once(agent, question: str, config: Optional[AgentConfig] = None) -> str:
             _print_divider(cfg.name, question)
 
         try:
-            result = agent.invoke({"messages": [("human", question)]})
+            result = agent.invoke({"messages": [("human", question)]}, config=lg_config)
         except Exception as e:
             logger.exception("Agent invocation failed")
             raise RuntimeError("Agent invocation failed") from e
