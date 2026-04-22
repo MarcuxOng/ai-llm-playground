@@ -27,14 +27,14 @@ class Thread(Base):
     metadata_ = Column("metadata", JSON, default=dict)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    messages = relationship("ThreadMessage", back_populates="thread", order_by="ThreadMessage.created_at")
+    messages = relationship("ThreadMessage", back_populates="thread", order_by="ThreadMessage.created_at", cascade="all, delete-orphan", passive_deletes=True,)
 
 
 class ThreadMessage(Base):
     __tablename__ = "playground_v1_thread_messages"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    thread_id = Column(String, ForeignKey("playground_v1_threads.id"), nullable=False)
+    thread_id = Column(String, ForeignKey("playground_v1_threads.id", ondelete="CASCADE"), nullable=False)
     role = Column(String, nullable=False)   # "human" | "ai" | "tool"
     content = Column(Text, nullable=False)
     tool_calls = Column(JSON, nullable=True)    # raw tool call data if role=="ai"

@@ -12,6 +12,7 @@ from app.services.agents import (
     AgentResponse,
     AgentRunRequest, 
     AgentRunResponse,
+    AgentUpdate,
     run_agent_service, 
     run_agent_stream_service
 )
@@ -62,7 +63,7 @@ async def create_agent(
 @router.patch("/{agent_id}", response_model=APIResponse[AgentResponse])
 async def update_agent_config(
     agent_id: str, 
-    body: AgentCreate,
+    body: AgentUpdate,
     db: Session = Depends(get_db)
 ):
     config = db.query(Agents).filter(
@@ -71,7 +72,13 @@ async def update_agent_config(
     
     if not config:
         raise HTTPException(404, "Config not found.")
-    for field, value in body.model_dump(exclude_unset=True).items():
+    patch = body.model_dump(exclude_unset=True)
+    if "tools" in patch:
+        unknown = [t for t in patch["tools"] if t not in _REGISTRY]
+        if unknown:
+            raise HTTPException(400, detail=f"Unknown tools: {unknown}, Available: {list(_REGISTRY.keys())}")
+
+    for field, value in patch.items():
         setattr(config, field, value)
     db.commit()
     db.refresh(config)

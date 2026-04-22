@@ -52,8 +52,8 @@ class AgentRunRequest(BaseModel):
 
     @model_validator(mode="after")
     def check_source(self):
-        if not self.preset and not self.agent_id:
-            raise ValueError("Either 'preset' or 'agent_id' is required.")
+        if bool(self.preset) == bool(self.agent_id):
+            raise ValueError("Exactly one of 'preset' or 'agent_id' is required.")
         if self.preset and (not self.model or not self.provider):
             raise ValueError("'model' and 'provider' are required when using a 'preset'.")
         return self
@@ -65,6 +65,15 @@ class AgentRunResponse(BaseModel):
     model: str
     provider: str
     thread_id: str
+
+
+class AgentUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    system_prompt: Optional[str] = None
+    tools: Optional[List[str]] = None
+    model: Optional[str] = None
+    provider: Optional[str] = None
 
 
 @lru_cache(maxsize=32)
@@ -93,7 +102,10 @@ async def run_agent_service(
     """
     # Determine agent config
     if request.agent_id:
-        agent_config_model = db.query(Agents).filter(Agents.id == request.agent_id).first()
+        agent_config_model = db.query(Agents).filter(
+            Agents.id == request.agent_id,
+            Agents.is_active.is_(True),
+        ).first()
         if not agent_config_model:
             raise HTTPException(status_code=404, detail=f"Agent config {request.agent_id} not found")
         
@@ -115,6 +127,12 @@ async def run_agent_service(
         thread = db.query(Thread).filter(Thread.id == request.thread_id).first()
         if not thread:
             raise HTTPException(status_code=404, detail=f"Thread {request.thread_id} not found")
+        if (
+            thread.preset != preset_name
+            or thread.model != model
+            or thread.provider != provider
+        ):
+            raise HTTPException(status_code=400, detail="Thread belongs to a different agent configuration.")
     else:
         thread = Thread(
             id=str(uuid.uuid4()),
