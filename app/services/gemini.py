@@ -127,7 +127,7 @@ def tools_service(model: str, prompt: str):
 async def gemini_stream_service(model: str, prompt: str):
     try:
         logger.info(f"Starting Gemini streaming generation with model: {model}")
-        async with genai.Client(api_key=settings.gemini_api_key).aio as async_client:
+        async with client.aio as async_client:
             response = await async_client.models.generate_content_stream(
                 model=model,
                 contents=prompt
