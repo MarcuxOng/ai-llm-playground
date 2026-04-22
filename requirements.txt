@@ -24,6 +24,7 @@ numpy==2.4.3
 openai==2.29.0
 pinecone==8.1.0
 protobuf==5.29.6
+psycopg[binary]==3.3.3
 psycopg2-binary==2.9.11
 pydantic==2.12.5
 pydantic_settings==2.13.1
