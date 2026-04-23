@@ -13,5 +13,5 @@ web_tools = [
     wikipedia,
     scraper,
     youtube,
-    search,
+    # search,
 ]
