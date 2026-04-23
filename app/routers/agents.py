@@ -43,6 +43,20 @@ async def get_presets():
     return APIResponse(data={"presets": list(PRESETS.keys())})
 
 
+@router.get("/tools", response_model=APIResponse)
+async def list_available_tools():
+    """List all registered tools that can be assigned to an agent config."""
+    tools = [
+        {
+            "name": name,
+            "description": entry["schema"]["function"]["description"],
+            "parameters": entry["schema"]["function"]["parameters"],
+        }
+        for name, entry in _REGISTRY.items()
+    ]
+    return APIResponse(data=tools)
+
+
 @router.post("/create", response_model=APIResponse[AgentResponse])
 async def create_agent(
     body: AgentCreate, 
@@ -132,17 +146,3 @@ async def run_agent_stream(
         media_type="text/event-stream"
     )
     return response
-
-
-@router.get("/tools", response_model=APIResponse)
-async def list_available_tools():
-    """List all registered tools that can be assigned to an agent config."""
-    tools = [
-        {
-            "name": name,
-            "description": entry["schema"]["function"]["description"],
-            "parameters": entry["schema"]["function"]["parameters"],
-        }
-        for name, entry in _REGISTRY.items()
-    ]
-    return APIResponse(data=tools)
