@@ -3,7 +3,7 @@ import logging
 
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from app.database.db import get_db
@@ -23,8 +23,7 @@ class APIKeyResponse(BaseModel):
     created_at: datetime
     revoked_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.post("/keys/generate", response_model=APIResponse)

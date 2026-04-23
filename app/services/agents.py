@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from fastapi import HTTPException
 from functools import lru_cache
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, ConfigDict
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 from typing import AsyncGenerator, Optional, List
@@ -38,8 +38,7 @@ class AgentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentRunRequest(BaseModel):
