@@ -86,7 +86,6 @@ Thumbs.db
 misc/
 conductor/
 .gemini/
-.claude/
 
 # mypy
 .mypy_cache/
