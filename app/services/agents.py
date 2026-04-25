@@ -23,7 +23,6 @@ class AgentCreate(BaseModel):
     system_prompt: str
     tools: List[str]
     model: str
-    provider: str
 
 
 class AgentResponse(BaseModel):
@@ -33,7 +32,6 @@ class AgentResponse(BaseModel):
     system_prompt: str
     tools: List[str]
     model: str
-    provider: str
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -42,7 +40,6 @@ class AgentResponse(BaseModel):
 
 
 class AgentRunRequest(BaseModel):
-    provider: Optional[str] = None
     model: Optional[str] = None
     preset: Optional[str] = None       # hardcoded preset name
     agent_id: Optional[str] = None   # DB-backed config id — takes priority
@@ -53,8 +50,8 @@ class AgentRunRequest(BaseModel):
     def check_source(self):
         if bool(self.preset) == bool(self.agent_id):
             raise ValueError("Exactly one of 'preset' or 'agent_id' is required.")
-        if self.preset and (not self.model or not self.provider):
-            raise ValueError("'model' and 'provider' are required when using a 'preset'.")
+        if self.preset and not self.model:
+            raise ValueError("'model' is required when using a 'preset'.")
         return self
 
 
@@ -62,7 +59,6 @@ class AgentRunResponse(BaseModel):
     answer: str
     preset: Optional[str] = None
     model: str
-    provider: str
     thread_id: str
 
 
@@ -72,24 +68,21 @@ class AgentUpdate(BaseModel):
     system_prompt: Optional[str] = None
     tools: Optional[List[str]] = None
     model: Optional[str] = None
-    provider: Optional[str] = None
 
 
 @lru_cache(maxsize=32)
 def _get_cached_agent(
     preset: str, 
     model: str, 
-    provider: str, 
     checkpointer_id: int
 ):
     """
     Cached agent factory to avoid rebuilding the agent on every request.
-    Includes checkpointer_id in the cache key to ensure the checkpointer is correctly handled,
-    even though get_checkpointer() is also cached.
+    Includes checkpointer_id in the cache key to ensure the checkpointer is correctly handled.
     """
     checkpointer = get_checkpointer()
     agent_factory = PRESETS[preset]
-    return agent_factory(model=model, provider=provider, checkpointer=checkpointer)
+    return agent_factory(model=model, checkpointer=checkpointer)
 
 
 async def run_agent_service(
@@ -97,7 +90,7 @@ async def run_agent_service(
     db: Session
 ) -> AgentRunResponse:
     """
-    Unified service for running agents with different providers.
+    Unified service for running agents.
     """
     # Determine agent config
     if request.agent_id:
@@ -111,14 +104,12 @@ async def run_agent_service(
         system_prompt = agent_config_model.system_prompt
         tools = agent_config_model.tools
         model = agent_config_model.model
-        provider = agent_config_model.provider
         preset_name = f"custom:{agent_config_model.name}"
     else:
         if request.preset not in PRESETS:
             raise HTTPException(status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}")
         
         model = request.model
-        provider = request.provider
         preset_name = request.preset
 
     # Handle threading
@@ -129,7 +120,6 @@ async def run_agent_service(
         if (
             thread.preset != preset_name
             or thread.model != model
-            or thread.provider != provider
         ):
             raise HTTPException(status_code=400, detail="Thread belongs to a different agent configuration.")
     else:
@@ -137,14 +127,13 @@ async def run_agent_service(
             id=str(uuid.uuid4()),
             preset=preset_name,
             model=model,
-            provider=provider
         )
         db.add(thread)
         db.commit()
         db.refresh(thread)
 
     try:
-        logger.info(f"Running agent with preset: {preset_name}, model: {model}, provider: {provider}, thread: {thread.id}")
+        logger.info(f"Running agent with preset: {preset_name}, model: {model}, thread: {thread.id}")
         checkpointer = get_checkpointer()
 
         # Build or get cached agent
@@ -155,7 +144,6 @@ async def run_agent_service(
                 tools=tools,
                 system_prompt=system_prompt,
                 model=model,
-                provider=provider,
                 checkpointer=checkpointer
             )
         else:
@@ -163,7 +151,6 @@ async def run_agent_service(
                 _get_cached_agent, 
                 request.preset,
                 model, 
-                provider,
                 id(checkpointer)
             )
         
@@ -171,7 +158,6 @@ async def run_agent_service(
         config = AgentConfig(
             name=f"{preset_name.capitalize()} Agent", 
             model=model, 
-            provider=provider,
             verbose=False,
         )
         
@@ -205,14 +191,13 @@ async def run_agent_service(
             answer=answer,
             preset=preset_name,
             model=model,
-            provider=provider,
             thread_id=thread.id
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        logger.exception(f"Error running agent with {provider}")
-        raise HTTPException(status_code=500, detail=f"Agent execution failed for {provider}.") from e
+        logger.exception(f"Error running agent")
+        raise HTTPException(status_code=500, detail=f"Agent execution failed.") from e
 
 
 async def run_agent_stream_service(
@@ -231,14 +216,12 @@ async def run_agent_stream_service(
         system_prompt = agent_config_model.system_prompt
         tools = agent_config_model.tools
         model = agent_config_model.model
-        provider = agent_config_model.provider
         preset_name = f"custom:{agent_config_model.name}"
     else:
         if request.preset not in PRESETS:
             raise HTTPException(status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}")
         
         model = request.model
-        provider = request.provider
         preset_name = request.preset
 
     # Handle threading
@@ -251,7 +234,6 @@ async def run_agent_stream_service(
             id=str(uuid.uuid4()),
             preset=preset_name,
             model=model,
-            provider=provider
         )
         db.add(thread)
         db.commit()
@@ -268,7 +250,7 @@ async def run_agent_stream_service(
     db.commit()
 
     try:
-        logger.info(f"Streaming agent with preset: {preset_name}, model: {model}, provider: {provider}, thread: {thread.id}")
+        logger.info(f"Streaming agent with preset: {preset_name}, model: {model}, thread: {thread.id}")
         checkpointer = get_checkpointer()
 
         # Build or get cached agent
@@ -278,7 +260,6 @@ async def run_agent_stream_service(
                 tools=tools,
                 system_prompt=system_prompt,
                 model=model,
-                provider=provider,
                 checkpointer=checkpointer
             )
         else:
@@ -286,7 +267,6 @@ async def run_agent_stream_service(
                 _get_cached_agent, 
                 request.preset,
                 model, 
-                provider,
                 id(checkpointer)
             )
         
@@ -329,7 +309,7 @@ async def run_agent_stream_service(
         yield f"data: {json.dumps({'type': 'done', 'thread_id': thread.id})}\n\n"
         yield "data: [DONE]\n\n"
     except Exception as e:  
-        logger.exception(f"Error in streaming agent {provider}")
+        logger.exception(f"Error in streaming agent")
         yield f"data: {json.dumps({'type': 'error', 'content': 'Stream failed'})}\n\n"
         yield f"data: {json.dumps({'type': 'done', 'thread_id': thread.id})}\n\n"
         yield "data: [DONE]\n\n"

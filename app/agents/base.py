@@ -53,7 +53,6 @@ def build_agent(
     tools: Union[List[BaseTool], List[str]],
     system_prompt: str,
     model: str,
-    provider: str,
     checkpointer=None,
 ):
     """
@@ -63,7 +62,6 @@ def build_agent(
         tools:         List of LangChain tools OR list of project tool names.
         system_prompt: System-level instruction injected at the start of every run.
         model:         Model name.
-        provider:      Provider name ('gemini', 'groq', 'mistral', 'openrouter').
 
     Returns:
         A compiled LangGraph CompiledGraph ready to invoke.
@@ -77,7 +75,7 @@ def build_agent(
             processed_tools = tools
 
         llm = create_react_agent(
-            model=build_llm(provider, model),
+            model=build_llm(model),
             tools=processed_tools,
             prompt=system_prompt,
             checkpointer=checkpointer,

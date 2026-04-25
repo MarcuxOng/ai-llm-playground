@@ -42,7 +42,6 @@ if settings.enable_execute_code:
 
 def build_coder_agent(
     model: str, 
-    provider: str, 
     checkpointer=None,
 ):
     """
@@ -50,7 +49,6 @@ def build_coder_agent(
 
     Args:
         model: Model name.
-        provider: Provider name.
         checkpointer: Optional LangGraph checkpointer.
 
     Returns:
@@ -61,7 +59,6 @@ def build_coder_agent(
             tools=TOOLS,
             system_prompt=SYSTEM_PROMPT,
             model=model,
-            provider=provider,
             checkpointer=checkpointer,
         )
         return res

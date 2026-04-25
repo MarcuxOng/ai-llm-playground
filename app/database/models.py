@@ -23,7 +23,6 @@ class Thread(Base):
     title = Column(String, nullable=True)
     preset = Column(String, nullable=False)
     model = Column(String, nullable=False)
-    provider = Column(String, nullable=False)
     metadata_ = Column("metadata", JSON, default=dict)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
@@ -51,7 +50,6 @@ class Agents(Base):
     system_prompt = Column(Text, nullable=False)
     tools = Column(JSON, nullable=False, default=list)   # list of tool name strings
     model = Column(String, nullable=False)
-    provider = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

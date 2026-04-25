@@ -27,7 +27,6 @@ Guidelines:
 
 TOOLS = [
     "search_knowledge_base",
-    "web_search",
     "calculate",
     "scrape_url"
 ]
@@ -35,7 +34,6 @@ TOOLS = [
 
 def build_knowledge_agent(
     model: str, 
-    provider: str, 
     checkpointer=None,
 ):
     """
@@ -43,7 +41,6 @@ def build_knowledge_agent(
 
     Args:
         model: Model name.
-        provider: Provider name.
         checkpointer: Optional LangGraph checkpointer.
 
     Returns:
@@ -54,7 +51,6 @@ def build_knowledge_agent(
             tools=TOOLS,
             system_prompt=SYSTEM_PROMPT,
             model=model,
-            provider=provider,
             checkpointer=checkpointer,
         )
         return res
