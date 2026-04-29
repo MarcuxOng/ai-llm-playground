@@ -26,10 +26,10 @@ class MCPAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         # FastMCP SSE transport passes through HTTP headers
         if request.url.path.startswith("/mcp"):
-            api_key = request.headers.get("x-api-key", "")
+            api_key = request.headers.get("x-api-key")
             
             # Check Master Key
-            if api_key == settings.master_api_key:
+            if api_key and settings.master_api_key and api_key == settings.master_api_key:
                 return await call_next(request)
             
             # Check Database Keys
@@ -52,6 +52,7 @@ class MCPAuthMiddleware(BaseHTTPMiddleware):
 
 def _register_all_tools():
     """Dynamically register every tool in the project registry with FastMCP."""
+    failures = []
     for tool_name, entry in _REGISTRY.items():
         fn = entry["fn"]
 
@@ -59,7 +60,10 @@ def _register_all_tools():
             mcp.tool(name=tool_name)(fn)
             logger.info(f"MCP: registered tool '{tool_name}'")
         except Exception as e:
-            logger.warning(f"MCP: could not register tool '{tool_name}': {e}")
+            logger.exception("MCP: could not register tool '%s'", tool_name)
+            failures.append(tool_name)
 
+    if failures:
+        raise RuntimeError(f"Failed to register MCP tools: {failures}")
 
 _register_all_tools()

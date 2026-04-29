@@ -54,7 +54,11 @@ def get_checkpointer():
 def close_checkpointer():
     """Close the checkpointer context manager from FastAPI lifespan shutdown."""
     global _CHECKPOINTER, _CHECKPOINTER_CTX
-    if _CHECKPOINTER_CTX is not None:
-        _CHECKPOINTER_CTX.__exit__(None, None, None)
-    _CHECKPOINTER = None
-    _CHECKPOINTER_CTX = None
+    with _CHECKPOINTER_LOCK:
+        ctx = _CHECKPOINTER_CTX
+        try:
+            if ctx is not None:
+                ctx.__exit__(None, None, None)
+        finally:
+            _CHECKPOINTER = None
+            _CHECKPOINTER_CTX = None
