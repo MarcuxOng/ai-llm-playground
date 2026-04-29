@@ -12,7 +12,7 @@ from starlette.concurrency import run_in_threadpool
 from typing import AsyncGenerator, Optional, List, Any
 
 from app.agents import AgentConfig, PRESETS, run_once, build_agent
-from app.database.models import Agents, Thread, ThreadMessage, MCPServerConfig
+from app.database.models import Agents, APIKey, Thread, ThreadMessage, MCPServerConfig
 from app.mcp.client import load_mcp_tools
 from app.memory.checkpointer import get_checkpointer
 
