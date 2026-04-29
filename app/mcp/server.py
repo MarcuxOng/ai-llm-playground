@@ -5,6 +5,7 @@ no duplication — adding a tool to the registry automatically exposes it here.
 """
 
 import logging
+import secrets
 from fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
@@ -13,7 +14,7 @@ from app.config import settings
 from app.database.db import SessionLocal
 from app.database.models import APIKey
 from app.tools import _REGISTRY
-from app.utils.auth import hash_api_key 
+from app.utils.auth import hash_api_key
 
 logger = logging.getLogger(__name__)
 mcp = FastMCP(
@@ -27,26 +28,27 @@ class MCPAuthMiddleware(BaseHTTPMiddleware):
         # FastMCP SSE transport passes through HTTP headers
         if request.url.path.startswith("/mcp"):
             api_key = request.headers.get("x-api-key")
+            if not api_key:
+                return JSONResponse({"error": "Unauthorized: Missing API Key"}, status_code=401)
             
             # Check Master Key
-            if api_key and settings.master_api_key and api_key == settings.master_api_key:
+            if settings.master_api_key and secrets.compare_digest(api_key, settings.master_api_key):
                 return await call_next(request)
             
             # Check Database Keys
-            if api_key:
-                db = SessionLocal()
-                try:
-                    hashed = hash_api_key(api_key)
-                    api_key_record = db.query(APIKey).filter(
-                        APIKey.hashed_key == hashed,
-                        APIKey.is_active == True
-                    ).first()
-                    
-                    if api_key_record:
-                        return await call_next(request)
-                finally:
-                    db.close()
-            return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            db = SessionLocal()
+            try:
+                hashed = hash_api_key(api_key)
+                api_key_record = db.query(APIKey).filter(
+                    APIKey.hashed_key == hashed,
+                    APIKey.is_active == True
+                ).first()
+                
+                if api_key_record:
+                    return await call_next(request)
+            finally:
+                db.close()
+            return JSONResponse({"error": "Unauthorized: Invalid API Key"}, status_code=401)
         return await call_next(request)
 
 
