@@ -16,7 +16,10 @@ from app.tools import _REGISTRY
 from app.utils.auth import check_api_key
 
 logger = logging.getLogger(__name__)
-# ... (mcp initialization unchanged)
+mcp = FastMCP(
+    name="ai-llm-playground",
+    instructions="An AI platform exposing tools",
+)
 
 class MCPAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
