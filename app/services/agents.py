@@ -273,7 +273,10 @@ async def run_agent_stream_service(
     """
     # Determine agent config
     if request.agent_id:
-        query = db.query(Agents).filter(Agents.id == request.agent_id)
+        query = db.query(Agents).filter(
+            Agents.id == request.agent_id,
+            Agents.is_active.is_(True)
+        )
         if api_key.id != "master":
             query = query.filter(Agents.owner_id == api_key.id)
             
@@ -301,6 +304,13 @@ async def run_agent_stream_service(
         thread = query.first()
         if not thread:
             raise HTTPException(status_code=404, detail=f"Thread {request.thread_id} not found")
+        
+        # Verify thread configuration matches incoming run
+        if (
+            thread.preset != preset_name
+            or thread.model != model
+        ):
+            raise HTTPException(status_code=400, detail="Thread belongs to a different agent configuration.")
     else:
         thread = Thread(
             id=str(uuid.uuid4()),
