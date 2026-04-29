@@ -12,16 +12,11 @@ from starlette.responses import JSONResponse
 
 from app.config import settings
 from app.database.db import SessionLocal
-from app.database.models import APIKey
 from app.tools import _REGISTRY
-from app.utils.auth import hash_api_key
+from app.utils.auth import check_api_key
 
 logger = logging.getLogger(__name__)
-mcp = FastMCP(
-    name="ai-llm-playground",
-    instructions="An AI platform exposing tools",
-)
-
+# ... (mcp initialization unchanged)
 
 class MCPAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -31,23 +26,13 @@ class MCPAuthMiddleware(BaseHTTPMiddleware):
             if not api_key:
                 return JSONResponse({"error": "Unauthorized: Missing API Key"}, status_code=401)
             
-            # Check Master Key
-            if settings.master_api_key and secrets.compare_digest(api_key, settings.master_api_key):
-                return await call_next(request)
-            
-            # Check Database Keys
             db = SessionLocal()
             try:
-                hashed = hash_api_key(api_key)
-                api_key_record = db.query(APIKey).filter(
-                    APIKey.hashed_key == hashed,
-                    APIKey.is_active == True
-                ).first()
-                
-                if api_key_record:
+                if check_api_key(api_key, db):
                     return await call_next(request)
             finally:
                 db.close()
+                
             return JSONResponse({"error": "Unauthorized: Invalid API Key"}, status_code=401)
         return await call_next(request)
 

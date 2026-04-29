@@ -17,6 +17,25 @@ def hash_api_key(api_key: str) -> str:
     return hashlib.sha256(api_key.encode()).hexdigest()
 
 
+def check_api_key(api_key: str, db: Session) -> bool:
+    """
+    Synchronous check for API key validity.
+    Checks against both the master key and the database.
+    """
+    # 1. Check Master Key
+    if settings.master_api_key and secrets.compare_digest(api_key, settings.master_api_key):
+        return True
+
+    # 2. Check Database Keys
+    hashed = hash_api_key(api_key)
+    api_key_record = db.query(APIKey).filter(
+        APIKey.hashed_key == hashed,
+        APIKey.is_active == True
+    ).first()
+
+    return api_key_record is not None
+
+
 async def verify_api_key(
     x_api_key: str = Header(...), 
     db: Session = Depends(get_db)
@@ -27,8 +46,6 @@ async def verify_api_key(
     """
     # 1. Check Master Key
     if settings.master_api_key and secrets.compare_digest(x_api_key, settings.master_api_key):
-        # Return a "virtual" APIKey record for master key access if needed, or handle master key as a special case in routers.
-        # For simplicity, we'll return None or a special record.
         return APIKey(id="master", name="Master Key")
 
     # 2. Check Database Keys
