@@ -5,13 +5,15 @@ import uuid
 from datetime import datetime
 from fastapi import HTTPException
 from functools import lru_cache
+from langchain_core.tools import BaseTool
 from pydantic import BaseModel, model_validator, ConfigDict
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
-from typing import AsyncGenerator, Optional, List
+from typing import AsyncGenerator, Optional, List, Any
 
 from app.agents import AgentConfig, PRESETS, run_once, build_agent
-from app.database.models import Agents, Thread, ThreadMessage
+from app.database.models import Agents, APIKey, Thread, ThreadMessage, MCPServerConfig
+from app.mcp.client import load_mcp_tools
 from app.memory.checkpointer import get_checkpointer
 
 logger = logging.getLogger(__name__)
@@ -43,6 +45,7 @@ class AgentRunRequest(BaseModel):
     model: Optional[str] = None
     preset: Optional[str] = None       # hardcoded preset name
     agent_id: Optional[str] = None   # DB-backed config id — takes priority
+    mcp_server_ids: Optional[List[str]] = None  # external MCP servers to connect to
     prompt: str
     thread_id: Optional[str] = None
 
@@ -85,19 +88,49 @@ def _get_cached_agent(
     return agent_factory(model=model, checkpointer=checkpointer)
 
 
+async def _get_agent(
+    preset: str,
+    model: str,
+    checkpointer: Any,
+    extra_tools: List[BaseTool] = None
+):
+    """Helper to get cached or new agent with optional extra tools."""
+    if extra_tools:
+        # Bypass cache if extra tools are present as they are not hashable
+        agent_factory = PRESETS[preset]
+        return await run_in_threadpool(
+            agent_factory,
+            model=model,
+            checkpointer=checkpointer,
+            extra_tools=extra_tools
+        )
+    
+    return await run_in_threadpool(
+        _get_cached_agent,
+        preset,
+        model,
+        id(checkpointer)
+    )
+
+
 async def run_agent_service(
     request: AgentRunRequest, 
-    db: Session
+    db: Session,
+    api_key: APIKey
 ) -> AgentRunResponse:
     """
     Unified service for running agents.
     """
     # Determine agent config
     if request.agent_id:
-        agent_config_model = db.query(Agents).filter(
+        query = db.query(Agents).filter(
             Agents.id == request.agent_id,
             Agents.is_active.is_(True),
-        ).first()
+        )
+        if api_key.id != "master":
+            query = query.filter(Agents.owner_id == api_key.id)
+            
+        agent_config_model = query.first()
         if not agent_config_model:
             raise HTTPException(status_code=404, detail=f"Agent config {request.agent_id} not found")
         
@@ -114,7 +147,11 @@ async def run_agent_service(
 
     # Handle threading
     if request.thread_id:
-        thread = db.query(Thread).filter(Thread.id == request.thread_id).first()
+        query = db.query(Thread).filter(Thread.id == request.thread_id)
+        if api_key.id != "master":
+            query = query.filter(Thread.owner_id == api_key.id)
+            
+        thread = query.first()
         if not thread:
             raise HTTPException(status_code=404, detail=f"Thread {request.thread_id} not found")
         if (
@@ -125,6 +162,7 @@ async def run_agent_service(
     else:
         thread = Thread(
             id=str(uuid.uuid4()),
+            owner_id=api_key.id,
             preset=preset_name,
             model=model,
         )
@@ -136,22 +174,47 @@ async def run_agent_service(
         logger.info(f"Running agent with preset: {preset_name}, model: {model}, thread: {thread.id}")
         checkpointer = get_checkpointer()
 
+        # Load additional MCP tools if requested
+        mcp_tools = []
+        if request.mcp_server_ids:
+            for server_id in request.mcp_server_ids:
+                query = db.query(MCPServerConfig).filter(
+                    MCPServerConfig.id == server_id,
+                    MCPServerConfig.is_active.is_(True)
+                )
+                if api_key.id != "master":
+                    query = query.filter(MCPServerConfig.owner_id == api_key.id)
+                    
+                server_config = query.first()
+                if server_config:
+                    config_dict = {
+                        "name": server_config.name,
+                        "transport": server_config.transport,
+                        "url": server_config.url,
+                        "command": server_config.command,
+                        "args": server_config.args,
+                        "env": server_config.env
+                    }
+                    tools_from_server = await load_mcp_tools(config_dict)
+                    mcp_tools.extend(tools_from_server)
+
         # Build or get cached agent
         if request.agent_id:
-            # Rebuild for now as requested
+            # Merge agent's native tools with MCP tools
+            combined_tools = tools + mcp_tools
             agent = await run_in_threadpool(
                 build_agent,
-                tools=tools,
+                tools=combined_tools,
                 system_prompt=system_prompt,
                 model=model,
                 checkpointer=checkpointer
             )
         else:
-            agent = await run_in_threadpool(
-                _get_cached_agent, 
+            agent = await _get_agent(
                 request.preset,
                 model, 
-                id(checkpointer)
+                checkpointer,
+                extra_tools=mcp_tools
             )
         
         # Run the agent
@@ -202,14 +265,19 @@ async def run_agent_service(
 
 async def run_agent_stream_service(
     request: AgentRunRequest, 
-    db: Session
+    db: Session,
+    api_key: APIKey
 ) -> AsyncGenerator[str, None]:
     """
     Unified service for running agents with streaming responses.
     """
     # Determine agent config
     if request.agent_id:
-        agent_config_model = db.query(Agents).filter(Agents.id == request.agent_id).first()
+        query = db.query(Agents).filter(Agents.id == request.agent_id)
+        if api_key.id != "master":
+            query = query.filter(Agents.owner_id == api_key.id)
+            
+        agent_config_model = query.first()
         if not agent_config_model:
             raise HTTPException(status_code=404, detail=f"Agent config {request.agent_id} not found")
         
@@ -226,12 +294,17 @@ async def run_agent_stream_service(
 
     # Handle threading
     if request.thread_id:
-        thread = db.query(Thread).filter(Thread.id == request.thread_id).first()
+        query = db.query(Thread).filter(Thread.id == request.thread_id)
+        if api_key.id != "master":
+            query = query.filter(Thread.owner_id == api_key.id)
+            
+        thread = query.first()
         if not thread:
             raise HTTPException(status_code=404, detail=f"Thread {request.thread_id} not found")
     else:
         thread = Thread(
             id=str(uuid.uuid4()),
+            owner_id=api_key.id,
             preset=preset_name,
             model=model,
         )
@@ -253,21 +326,46 @@ async def run_agent_stream_service(
         logger.info(f"Streaming agent with preset: {preset_name}, model: {model}, thread: {thread.id}")
         checkpointer = get_checkpointer()
 
+        # Load additional MCP tools if requested
+        mcp_tools = []
+        if request.mcp_server_ids:
+            for server_id in request.mcp_server_ids:
+                query = db.query(MCPServerConfig).filter(
+                    MCPServerConfig.id == server_id,
+                    MCPServerConfig.is_active.is_(True)
+                )
+                if api_key.id != "master":
+                    query = query.filter(MCPServerConfig.owner_id == api_key.id)
+                    
+                server_config = query.first()
+                if server_config:
+                    config_dict = {
+                        "name": server_config.name,
+                        "transport": server_config.transport,
+                        "url": server_config.url,
+                        "command": server_config.command,
+                        "args": server_config.args,
+                        "env": server_config.env
+                    }
+                    tools_from_server = await load_mcp_tools(config_dict)
+                    mcp_tools.extend(tools_from_server)
+
         # Build or get cached agent
         if request.agent_id:
+            combined_tools = tools + mcp_tools
             agent = await run_in_threadpool(
                 build_agent,
-                tools=tools,
+                tools=combined_tools,
                 system_prompt=system_prompt,
                 model=model,
                 checkpointer=checkpointer
             )
         else:
-            agent = await run_in_threadpool(
-                _get_cached_agent, 
+            agent = await _get_agent(
                 request.preset,
                 model, 
-                id(checkpointer)
+                checkpointer,
+                extra_tools=mcp_tools
             )
         
         lg_config = {"configurable": {"thread_id": thread.id}}

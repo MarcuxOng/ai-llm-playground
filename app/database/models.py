@@ -20,6 +20,7 @@ class Thread(Base):
     __tablename__ = "playground_v1_threads"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    owner_id = Column(String, ForeignKey("playground_v1_api_keys.id"), nullable=False, index=True)
     title = Column(String, nullable=True)
     preset = Column(String, nullable=False)
     model = Column(String, nullable=False)
@@ -45,7 +46,8 @@ class Agents(Base):
     __tablename__ = "playground_v1_agents"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String, nullable=False, unique=True)   # slug, e.g. "my-coder"
+    owner_id = Column(String, ForeignKey("playground_v1_api_keys.id"), nullable=False, index=True)
+    name = Column(String, nullable=False)   # Removed unique=True to allow same slug for different users
     description = Column(String, nullable=True)
     system_prompt = Column(Text, nullable=False)
     tools = Column(JSON, nullable=False, default=list)   # list of tool name strings
@@ -53,3 +55,22 @@ class Agents(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+
+class MCPServerConfig(Base):
+    """
+    Configuration for an external MCP server your agents can connect to.
+    """
+    __tablename__ = "playground_v1_mcp_servers"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    owner_id = Column(String, ForeignKey("playground_v1_api_keys.id"), nullable=False, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    transport = Column(String, nullable=True)             # "sse" | "stdio" (can be inferred)
+    url = Column(String, nullable=True)                   # for SSE transport
+    command = Column(String, nullable=True)               # for stdio: e.g. "npx"
+    args = Column(JSON, nullable=True)                    # ["@modelcontextprotocol/server-filesystem"]
+    env = Column(JSON, nullable=True)                     # env vars for stdio servers
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

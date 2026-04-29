@@ -2,6 +2,9 @@
 A knowledge-focused RAG agent.
 """
 
+from typing import List
+from langchain_core.tools import BaseTool
+
 from app.agents.base import build_agent
 
 
@@ -35,6 +38,7 @@ TOOLS = [
 def build_knowledge_agent(
     model: str, 
     checkpointer=None,
+    extra_tools: List[BaseTool] = None,
 ):
     """
     Build and return a Knowledge/RAG ReAct agent.
@@ -42,13 +46,15 @@ def build_knowledge_agent(
     Args:
         model: Model name.
         checkpointer: Optional LangGraph checkpointer.
+        extra_tools: Optional additional LangChain tools.
 
     Returns:
         A compiled LangGraph agent.
     """
     try:
+        combined_tools = TOOLS + (extra_tools or [])
         res = build_agent(
-            tools=TOOLS,
+            tools=combined_tools,
             system_prompt=SYSTEM_PROMPT,
             model=model,
             checkpointer=checkpointer,

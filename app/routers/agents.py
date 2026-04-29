@@ -6,7 +6,7 @@ from typing import List
 
 from app.agents import PRESETS
 from app.database.db import get_db
-from app.database.models import Agents
+from app.database.models import Agents, APIKey
 from app.services.agents import (
     AgentCreate,
     AgentResponse,
@@ -25,26 +25,30 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/api/v1/agents", 
     tags=["Agents"],
-    dependencies=[Depends(verify_api_key)]
 )
 
 
 @router.get("/list", response_model=APIResponse[List[AgentResponse]])
-async def list_agents(db: Session = Depends(get_db)):
-    configs = db.query(Agents).filter(
-        Agents.is_active == True
-    ).all()
+async def list_agents(
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(verify_api_key)
+):
+    query = db.query(Agents).filter(Agents.is_active == True)
+    if api_key.id != "master":
+        query = query.filter(Agents.owner_id == api_key.id)
+        
+    configs = query.all()
     return APIResponse(data=[AgentResponse.model_validate(c) for c in configs])
 
 
 @router.get("/presets", response_model=APIResponse)
-async def get_presets():
+async def get_presets(api_key: APIKey = Depends(verify_api_key)):
     """List available agent presets."""
     return APIResponse(data={"presets": list(PRESETS.keys())})
 
 
 @router.get("/tools", response_model=APIResponse)
-async def list_available_tools():
+async def list_available_tools(api_key: APIKey = Depends(verify_api_key)):
     """List all registered tools that can be assigned to an agent config."""
     tools = [
         {
@@ -58,16 +62,22 @@ async def list_available_tools():
 
 
 @router.post("/create", response_model=APIResponse[AgentResponse])
+@limiter.limit("10/minute")
 async def create_agent(
+    request: Request,
     body: AgentCreate, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(verify_api_key)
 ):
+    if api_key.id == "master":
+        raise HTTPException(403, detail="Master key cannot create agents directly.")
+
     # Validate requested tools exist in registry
     unknown = [t for t in body.tools if t not in _REGISTRY]
     if unknown:
         raise HTTPException(400, detail=f"Unknown tools: {unknown}, Available: {list(_REGISTRY.keys())}")
 
-    config = Agents(**body.model_dump())
+    config = Agents(**body.model_dump(), owner_id=api_key.id)
     db.add(config)
     db.commit()
     db.refresh(config)
@@ -75,18 +85,24 @@ async def create_agent(
 
 
 @router.patch("/{agent_id}", response_model=APIResponse[AgentResponse])
+@limiter.limit("10/minute")
 async def update_agent_config(
+    request: Request,
     agent_id: str, 
     body: AgentUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(verify_api_key)
 ):
-    config = db.query(Agents).filter(
-        Agents.id == agent_id
-    ).first()
+    query = db.query(Agents).filter(Agents.id == agent_id)
+    if api_key.id != "master":
+        query = query.filter(Agents.owner_id == api_key.id)
+        
+    config = query.first()
     
     if not config:
         raise HTTPException(404, "Config not found.")
-    patch = body.model_dump(exclude_unset=True)
+
+    patch = body.model_dump(exclude_unset=True, exclude_none=True)
     if "tools" in patch:
         unknown = [t for t in patch["tools"] if t not in _REGISTRY]
         if unknown:
@@ -100,13 +116,18 @@ async def update_agent_config(
 
 
 @router.delete("/{agent_id}", response_model=APIResponse)
+@limiter.limit("10/minute")
 async def delete_agent_config(
+    request: Request,
     agent_id: str, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(verify_api_key)
 ):
-    config = db.query(Agents).filter(
-        Agents.id == agent_id
-    ).first()
+    query = db.query(Agents).filter(Agents.id == agent_id)
+    if api_key.id != "master":
+        query = query.filter(Agents.owner_id == api_key.id)
+        
+    config = query.first()
     
     if not config:
         raise HTTPException(404, "Config not found.")
@@ -120,13 +141,14 @@ async def delete_agent_config(
 async def run_agent(
     request: Request, 
     body: AgentRunRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(verify_api_key)
 ):
     """
-    Unified endpoint for running agents with any supported provider.
+    Unified endpoint for running agents.
     """
-    logger.info(f"Calling agents API with provider: {body.provider}, model: {body.model}")
-    response = await run_agent_service(body, db)
+    logger.info(f"Calling agents API with model: {body.model}")
+    response = await run_agent_service(body, db, api_key)
     return APIResponse(data=response)
 
 
@@ -135,14 +157,15 @@ async def run_agent(
 async def run_agent_stream(
     request: Request, 
     body: AgentRunRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(verify_api_key)
 ):
     """
     Endpoint for running agents with streaming responses.
     """
-    logger.info(f"Starting agent stream with provider: {body.provider}, model: {body.model}")
+    logger.info(f"Starting agent stream with model: {body.model}")
     response = StreamingResponse(
-        run_agent_stream_service(body, db), 
+        run_agent_stream_service(body, db, api_key), 
         media_type="text/event-stream"
     )
     return response

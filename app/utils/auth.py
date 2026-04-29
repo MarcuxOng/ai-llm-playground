@@ -1,5 +1,6 @@
 import logging
 import hashlib
+import secrets
 
 from fastapi import Header, HTTPException, status, Depends
 from sqlalchemy.orm import Session
@@ -19,14 +20,16 @@ def hash_api_key(api_key: str) -> str:
 async def verify_api_key(
     x_api_key: str = Header(...), 
     db: Session = Depends(get_db)
-):
+) -> APIKey:
     """
     Dependency to verify API keys by hashing and checking the DB.
-    Fallbacks to master_api_key for initial admin setup.
+    Returns the APIKey record for the authenticated user.
     """
     # 1. Check Master Key
-    if x_api_key == settings.master_api_key:
-        return x_api_key
+    if settings.master_api_key and secrets.compare_digest(x_api_key, settings.master_api_key):
+        # Return a "virtual" APIKey record for master key access if needed, or handle master key as a special case in routers.
+        # For simplicity, we'll return None or a special record.
+        return APIKey(id="master", name="Master Key")
 
     # 2. Check Database Keys
     hashed = hash_api_key(x_api_key)
@@ -43,7 +46,7 @@ async def verify_api_key(
             headers={"WWW-Authenticate": "X-API-Key"},
         )
     
-    return x_api_key
+    return api_key_record
 
 
 async def verify_master_key(x_api_key: str = Header(...)):
@@ -51,7 +54,7 @@ async def verify_master_key(x_api_key: str = Header(...)):
     Dependency that only allows requests using the MASTER_API_KEY.
     Used for administrative endpoints like creating/listing keys.
     """
-    if x_api_key != settings.master_api_key:
+    if not settings.master_api_key or not secrets.compare_digest(x_api_key, settings.master_api_key):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: Administrative privileges required."
