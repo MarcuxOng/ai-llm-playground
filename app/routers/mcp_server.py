@@ -70,7 +70,8 @@ async def register_mcp_server(
     # Check if server with same name already exists for this owner
     existing = db.query(MCPServerConfig).filter(
         MCPServerConfig.name == body.name,
-        MCPServerConfig.owner_id == api_key.id
+        MCPServerConfig.owner_id == api_key.id,
+        MCPServerConfig.is_active.is_(True)
     ).first()
     if existing:
         raise HTTPException(
