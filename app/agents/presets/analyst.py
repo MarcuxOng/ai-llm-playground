@@ -19,12 +19,10 @@ Guidelines:
 TOOLS = [
     "get_stock_price",
     "get_crypto_price",
-    "web_search",
 ]
 
 def build_analyst_agent(
     model: str, 
-    provider: str, 
     checkpointer=None,
 ):
     """
@@ -32,7 +30,6 @@ def build_analyst_agent(
 
     Args:
         model: Model name.
-        provider: Provider name.
         checkpointer: Optional LangGraph checkpointer.
 
     Returns:
@@ -43,7 +40,6 @@ def build_analyst_agent(
             tools=TOOLS,
             system_prompt=SYSTEM_PROMPT,
             model=model,
-            provider=provider,
             checkpointer=checkpointer,
         )
         return res

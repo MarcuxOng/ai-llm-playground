@@ -12,6 +12,7 @@ from app.services.agents import (
     AgentResponse,
     AgentRunRequest, 
     AgentRunResponse,
+    AgentUpdate,
     run_agent_service, 
     run_agent_stream_service
 )
@@ -42,6 +43,20 @@ async def get_presets():
     return APIResponse(data={"presets": list(PRESETS.keys())})
 
 
+@router.get("/tools", response_model=APIResponse)
+async def list_available_tools():
+    """List all registered tools that can be assigned to an agent config."""
+    tools = [
+        {
+            "name": name,
+            "description": entry["schema"]["function"]["description"],
+            "parameters": entry["schema"]["function"]["parameters"],
+        }
+        for name, entry in _REGISTRY.items()
+    ]
+    return APIResponse(data=tools)
+
+
 @router.post("/create", response_model=APIResponse[AgentResponse])
 async def create_agent(
     body: AgentCreate, 
@@ -62,7 +77,7 @@ async def create_agent(
 @router.patch("/{agent_id}", response_model=APIResponse[AgentResponse])
 async def update_agent_config(
     agent_id: str, 
-    body: AgentCreate,
+    body: AgentUpdate,
     db: Session = Depends(get_db)
 ):
     config = db.query(Agents).filter(
@@ -71,7 +86,13 @@ async def update_agent_config(
     
     if not config:
         raise HTTPException(404, "Config not found.")
-    for field, value in body.model_dump(exclude_unset=True).items():
+    patch = body.model_dump(exclude_unset=True)
+    if "tools" in patch:
+        unknown = [t for t in patch["tools"] if t not in _REGISTRY]
+        if unknown:
+            raise HTTPException(400, detail=f"Unknown tools: {unknown}, Available: {list(_REGISTRY.keys())}")
+
+    for field, value in patch.items():
         setattr(config, field, value)
     db.commit()
     db.refresh(config)
@@ -125,17 +146,3 @@ async def run_agent_stream(
         media_type="text/event-stream"
     )
     return response
-
-
-@router.get("/tools", response_model=APIResponse)
-async def list_available_tools():
-    """List all registered tools that can be assigned to an agent config."""
-    tools = [
-        {
-            "name": name,
-            "description": entry["schema"]["function"]["description"],
-            "parameters": entry["schema"]["function"]["parameters"],
-        }
-        for name, entry in _REGISTRY.items()
-    ]
-    return APIResponse(data=tools)

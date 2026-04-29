@@ -21,7 +21,6 @@ Guidelines:
 # ── Factory ───────────────────────────────────────────────────────────────────
 
 TOOLS = [
-    "web_search", 
     "scrape_url", 
     "get_weather", 
     "get_datetime_info",
@@ -33,7 +32,6 @@ TOOLS = [
 
 def build_research_agent(
     model: str, 
-    provider: str, 
     checkpointer=None,
 ):
     """
@@ -41,7 +39,6 @@ def build_research_agent(
 
     Args:
         model: Model name.
-        provider: Provider name.
         checkpointer: Optional LangGraph checkpointer.
 
     Returns:
@@ -52,7 +49,6 @@ def build_research_agent(
             tools=TOOLS,
             system_prompt=SYSTEM_PROMPT,
             model=model,
-            provider=provider,
             checkpointer=checkpointer,
         )
         return res

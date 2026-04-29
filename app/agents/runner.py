@@ -18,12 +18,10 @@ class AgentConfig:
     Attributes:
         name:     Human-readable label shown in logs (e.g. "Research Agent").
         model:    Model string passed to build_agent().
-        provider: Provider name ('gemini', 'groq', 'mistral', 'openrouter').
         verbose:  If True, print tool calls and intermediate steps.
     """
     name: str = "Agent"
     model: str = None
-    provider: str = None
     verbose: bool = True
 
 
@@ -94,7 +92,7 @@ def run_interactive(agent, config: Optional[AgentConfig] = None) -> None:
         config: Optional AgentConfig for logging behaviour.
     """
     cfg = config or AgentConfig()
-    print(f"\n🤖  {cfg.name} ready  |  provider: {cfg.provider}  |  model: {cfg.model}\n    Type 'quit' to exit.\n")
+    print(f"\n🤖  {cfg.name} ready  |  model: {cfg.model}\n    Type 'quit' to exit.\n")
     while True:
         try:
             user_input = input("You: ").strip()

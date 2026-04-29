@@ -1,41 +1,26 @@
 import logging
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_groq import ChatGroq
-from langchain_mistralai import ChatMistralAI
-from langchain_openai import ChatOpenAI
+from langchain_google_vertexai import ChatVertexAI
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
 
-def build_llm(provider: str, model_name: str, temperature: float = 0.1):
-    logger.info(f"Building LLM for provider: {provider}, model: {model_name}")
-    if provider == "gemini":
+def build_llm(model_name: str, temperature: float = 0.1):
+    """Builds a Gemini LLM via Vertex AI with local fallback to Google AI Studio."""
+    logger.info(f"Building Gemini LLM: {model_name}")
+    try:
+        return ChatVertexAI(
+            model=model_name,
+            temperature=temperature,
+            location=settings.gcp_region,
+            project=settings.gcp_project_id,
+        )
+    except Exception as e:
+        logger.warning(f"Vertex AI initialization failed, falling back to Google AI Studio: {e}")
         return ChatGoogleGenerativeAI(
-            model=model_name, 
-            google_api_key=settings.gemini_api_key, 
-            temperature=temperature
+            model=model_name,
+            google_api_key=settings.gemini_api_key,
+            temperature=temperature,
         )
-    elif provider == "groq":
-        return ChatGroq(
-            model=model_name, 
-            api_key=settings.groq_api_key, 
-            temperature=temperature
-        )
-    elif provider == "mistral":
-        return ChatMistralAI(
-            model=model_name, 
-            api_key=settings.mistral_api_key, 
-            temperature=temperature
-        )
-    elif provider == "openrouter":
-        return ChatOpenAI(
-            model=model_name, 
-            openai_api_key=settings.openrouter_api_key, 
-            openai_api_base=settings.openrouter_base_url,
-            temperature=temperature
-        )
-    else:
-        logger.error(f"Unsupported provider: {provider}")
-        raise ValueError(f"Unsupported provider: {provider}")

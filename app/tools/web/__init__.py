@@ -4,7 +4,6 @@ from app.tools.web import (
     weather, 
     wikipedia, 
     youtube,
-    search,
 )
 
 web_tools = [
@@ -13,5 +12,4 @@ web_tools = [
     wikipedia,
     scraper,
     youtube,
-    search,
 ]

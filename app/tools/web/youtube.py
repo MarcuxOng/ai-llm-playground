@@ -32,8 +32,8 @@ def get_youtube_transcript(url: str, lang: str = "en") -> str:
         video_id_match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
         video_id = video_id_match.group(1) if video_id_match else url
         logger.info(f"Fetching YouTube transcript for ID: {video_id}")
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=[lang])
-        full_text = " ".join([t['text'] for t in transcript_list])
+        transcript = YouTubeTranscriptApi().fetch(video_id, languages=[lang])
+        full_text = " ".join([t.text for t in transcript])
         
         return f"--- YouTube Transcript ({video_id}) ---\n{full_text}"
 
