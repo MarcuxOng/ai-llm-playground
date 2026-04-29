@@ -5,7 +5,7 @@ An analyst-focused ReAct agent.
 from typing import List
 from langchain_core.tools import BaseTool
 
-from app.agents.base import build_agent
+from app.agents.base import build_agent, merge_tools
 
 # ── System Prompt ─────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """
@@ -41,7 +41,7 @@ def build_analyst_agent(
         A compiled LangGraph agent.
     """
     try:
-        combined_tools = TOOLS + (extra_tools or [])
+        combined_tools = merge_tools(TOOLS, extra_tools)
         res = build_agent(
             tools=combined_tools,
             system_prompt=SYSTEM_PROMPT,
