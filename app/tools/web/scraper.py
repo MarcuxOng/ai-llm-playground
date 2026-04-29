@@ -4,11 +4,46 @@ Web Scraper tool — fetches and extracts text from URLs.
 
 import logging
 import requests
+import socket
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 from app.tools import register
 
 logger = logging.getLogger(__name__)
+
+def is_safe_url(url: str) -> bool:
+    """
+    Check if a URL is safe to fetch (prevents SSRF).
+    Blocks private IP ranges, localhost, and non-http/https protocols.
+    """
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return False
+
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        # Resolve hostname to IP
+        ip_address = socket.gethostbyname(hostname)
+        
+        # Check for private/reserved IP ranges
+        # 127.0.0.0/8 (Loopback)
+        # 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 (Private)
+        # 169.254.0.0/16 (Link-local)
+        ip_parts = list(map(int, ip_address.split('.')))
+        
+        if ip_parts[0] == 127: return False
+        if ip_parts[0] == 10: return False
+        if ip_parts[0] == 172 and (16 <= ip_parts[1] <= 31): return False
+        if ip_parts[0] == 192 and ip_parts[1] == 168: return False
+        if ip_parts[0] == 169 and ip_parts[1] == 254: return False
+        
+        return True
+    except Exception:
+        return False
 
 
 @register
@@ -21,6 +56,9 @@ def scrape_url(url: str, max_chars: int = 4000) -> str:
     :param max_chars: The maximum amount of text to return (default 4000).
     """
     try:
+        if not is_safe_url(url):
+            return f"Error: The URL '{url}' is restricted for security reasons (SSRF protection)."
+
         logger.info(f"Scraping URL: {url}")
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
