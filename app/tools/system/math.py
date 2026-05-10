@@ -15,11 +15,15 @@ from app.tools import register
 logger = logging.getLogger(__name__)
 
 _OPS: dict[type, Any] = {
-    ast.Add: operator.add, ast.Sub: operator.sub,
-    ast.Mult: operator.mul, ast.Div: operator.truediv,
-    ast.Pow: operator.pow, ast.Mod: operator.mod,
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow,
+    ast.Mod: operator.mod,
     ast.FloorDiv: operator.floordiv,
-    ast.USub: operator.neg, ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
 }
 _FNS: dict[str, Any] = {n: getattr(math, n) for n in dir(math) if not n.startswith("_")}
 _CONSTS: dict[str, float] = {"pi": math.pi, "e": math.e, "tau": math.tau, "inf": math.inf}
@@ -51,7 +55,7 @@ def calculate(expression: str) -> str:
     """
     Safely evaluate a mathematical expression without executing arbitrary code.
     Supports basic arithmetic and math functions (sqrt, log, sin, cos, etc.).
-    
+
     :param expression: The math expression to evaluate (e.g., 'sqrt(16) * 2').
     """
     try:

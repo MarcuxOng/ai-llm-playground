@@ -29,8 +29,9 @@ TOOLS = [
     "get_crypto_price",
 ]
 
+
 def build_analyst_agent(
-    model: str, 
+    model: str,
     checkpointer: Any = None,
     extra_tools: list[BaseTool] | None = None,
 ) -> CompiledGraph:
@@ -56,4 +57,3 @@ def build_analyst_agent(
         return res
     except Exception:
         raise
-

@@ -13,16 +13,13 @@ from app.utils.auth import verify_api_key
 from app.utils.limiter import limiter
 from app.utils.response import APIResponse
 
-router = APIRouter(
-    prefix="/api/v1/mcp-servers",
-    tags=["MCP Servers"]
-)
+router = APIRouter(prefix="/api/v1/mcp-servers", tags=["MCP Servers"])
 
 
 class MCPServerCreate(BaseModel):
     name: str
     description: str | None = None
-    transport: str | None = None       # "sse" or "stdio" (can be inferred)
+    transport: str | None = None  # "sse" or "stdio" (can be inferred)
     url: str | None = None
     command: str | None = None
     args: list[str] | None = None
@@ -46,8 +43,7 @@ class MCPServerResponse(BaseModel):
 
 @router.get("/", response_model=APIResponse[list[MCPServerResponse]])
 async def list_mcp_servers(
-    db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    db: Session = Depends(get_db), api_key: APIKey = Depends(verify_api_key)
 ) -> APIResponse[list[MCPServerResponse]]:
     query = db.query(MCPServerConfig).filter(MCPServerConfig.is_active.is_(True))
     if api_key.id != "master":
@@ -64,21 +60,24 @@ async def register_mcp_server(
     request: Request,
     body: MCPServerCreate,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    api_key: APIKey = Depends(verify_api_key),
 ) -> APIResponse[MCPServerResponse]:
     if api_key.id == "master":
         raise HTTPException(403, detail="Master key cannot register MCP servers directly.")
 
     # Check if server with same name already exists for this owner
-    existing = db.query(MCPServerConfig).filter(
-        MCPServerConfig.name == body.name,
-        MCPServerConfig.owner_id == api_key.id,
-        MCPServerConfig.is_active.is_(True)
-    ).first()
+    existing = (
+        db.query(MCPServerConfig)
+        .filter(
+            MCPServerConfig.name == body.name,
+            MCPServerConfig.owner_id == api_key.id,
+            MCPServerConfig.is_active.is_(True),
+        )
+        .first()
+    )
     if existing:
         raise HTTPException(
-            status_code=400,
-            detail=f"MCP Server with name '{body.name}' is already registered."
+            status_code=400, detail=f"MCP Server with name '{body.name}' is already registered."
         )
 
     server = MCPServerConfig(**body.model_dump(), owner_id=api_key.id)
@@ -94,7 +93,7 @@ async def test_mcp_server(
     request: Request,
     server_id: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    api_key: APIKey = Depends(verify_api_key),
 ) -> APIResponse:  # type: ignore[type-arg]
     """Attempt to connect and list available tools from the server."""
     query = db.query(MCPServerConfig).filter(MCPServerConfig.id == server_id)
@@ -105,16 +104,21 @@ async def test_mcp_server(
     if not server:
         raise HTTPException(404, "Server not found.")
     config: dict[str, object] = {
-        "name": server.name, "transport": server.transport,
-        "url": server.url, "command": server.command,
-        "args": server.args, "env": server.env,
+        "name": server.name,
+        "transport": server.transport,
+        "url": server.url,
+        "command": server.command,
+        "args": server.args,
+        "env": server.env,
     }
     tools = await load_mcp_tools(config)
-    return APIResponse(data={
-        "server": server.name,
-        "tools_found": len(tools),
-        "tool_names": [t.name for t in tools],
-    })
+    return APIResponse(
+        data={
+            "server": server.name,
+            "tools_found": len(tools),
+            "tool_names": [t.name for t in tools],
+        }
+    )
 
 
 @router.delete("/{server_id}", response_model=APIResponse)
@@ -123,7 +127,7 @@ async def deregister_mcp_server(
     request: Request,
     server_id: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    api_key: APIKey = Depends(verify_api_key),
 ) -> APIResponse:  # type: ignore[type-arg]
     query = db.query(MCPServerConfig).filter(MCPServerConfig.id == server_id)
     if api_key.id != "master":

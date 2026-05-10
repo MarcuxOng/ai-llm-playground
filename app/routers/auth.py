@@ -31,38 +31,32 @@ class APIKeyResponse(BaseModel):
 @router.post("/keys/generate", response_model=APIResponse)
 @limiter.limit("5/minute")
 async def generate_key(
-    request: Request,
-    name: str,
-    db: Session = Depends(get_db),
-    _: None = Depends(verify_master_key)
+    request: Request, name: str, db: Session = Depends(get_db), _: None = Depends(verify_master_key)
 ) -> APIResponse:  # type: ignore[type-arg]
     """Generate a new, unique API key."""
     # Create raw key (e.g. "sk_play_...")
     raw_key = f"sk_play_{secrets.token_urlsafe(32)}"
     hashed_key = hash_api_key(raw_key)
 
-    new_key = APIKey(
-        name=name,
-        hashed_key=hashed_key,
-        is_active=True
-    )
+    new_key = APIKey(name=name, hashed_key=hashed_key, is_active=True)
 
     db.add(new_key)
     db.commit()
     db.refresh(new_key)
 
     logger.info(f"Generated new API key: {name}")
-    return APIResponse(data={
-        "api_key": raw_key,
-        "name": name,
-        "note": "Save this key now — it cannot be recovered later."
-    })
+    return APIResponse(
+        data={
+            "api_key": raw_key,
+            "name": name,
+            "note": "Save this key now — it cannot be recovered later.",
+        }
+    )
 
 
 @router.get("/keys", response_model=APIResponse[list[APIKeyResponse]])
 async def list_keys(
-    db: Session = Depends(get_db),
-    _: None = Depends(verify_master_key)
+    db: Session = Depends(get_db), _: None = Depends(verify_master_key)
 ) -> APIResponse[list[APIKeyResponse]]:
     """List all registered API keys."""
     keys = db.query(APIKey).all()
@@ -71,9 +65,7 @@ async def list_keys(
 
 @router.delete("/keys/{key_id}", response_model=APIResponse)
 async def revoke_key(
-    key_id: str,
-    db: Session = Depends(get_db),
-    _: None = Depends(verify_master_key)
+    key_id: str, db: Session = Depends(get_db), _: None = Depends(verify_master_key)
 ) -> APIResponse:  # type: ignore[type-arg]
     """Revoke (deactivate) an existing API key."""
     api_key_record = db.query(APIKey).filter(APIKey.id == key_id).first()

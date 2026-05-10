@@ -25,26 +25,25 @@ def get_weather(location: str, units: str = "metric") -> str:
     """
     try:
         logger.info(f"Fetching weather for: {location} (units: {units})")
-        
+
         params = {
             "appid": settings.openweathermap_api_key,
             "units": units,
         }
 
         # Handle lat,lon coordinates vs city name
-        if "," in location and all(part.strip().replace(".", "", 1).replace("-", "", 1).isdigit() for part in location.split(",")):
+        if "," in location and all(
+            part.strip().replace(".", "", 1).replace("-", "", 1).isdigit()
+            for part in location.split(",")
+        ):
             lat, lon = location.split(",")
             params["lat"] = lat.strip()
             params["lon"] = lon.strip()
         else:
             params["q"] = location
 
-        response = requests.get(
-            settings.weather_base_url, 
-            params=params,
-            timeout=10
-        )
-        
+        response = requests.get(settings.weather_base_url, params=params, timeout=10)
+
         if response.status_code == 401:
             return "Error: Invalid OpenWeatherMap API key."
         if response.status_code == 404:
@@ -53,7 +52,7 @@ def get_weather(location: str, units: str = "metric") -> str:
             return f"Error: API returned status {response.status_code}."
 
         data = response.json()
-        
+
         # Parse into a human-readable summary
         city = data.get("name", "Unknown")
         country = data.get("sys", {}).get("country", "")
@@ -62,7 +61,7 @@ def get_weather(location: str, units: str = "metric") -> str:
         desc = data.get("weather", [{}])[0].get("description", "clear sky").capitalize()
         humidity = data.get("main", {}).get("humidity")
         wind_speed = data.get("wind", {}).get("speed")
-        
+
         unit_symbol = "°C" if units == "metric" else "°F" if units == "imperial" else "K"
         speed_unit = "m/s" if units != "imperial" else "mph"
 
@@ -73,7 +72,7 @@ def get_weather(location: str, units: str = "metric") -> str:
             f"- Humidity: {humidity}%\n"
             f"- Wind Speed: {wind_speed} {speed_unit}"
         )
-        
+
         return summary
 
     except Exception as e:

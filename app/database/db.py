@@ -11,9 +11,7 @@ DATABASE_URL = settings.database_url
 
 # SQLite requires different arguments than PostgreSQL (Neon)
 if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        DATABASE_URL, connect_args={"check_same_thread": False}
-    )
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
     # Neon Tech (PostgreSQL) setup requires sslmode for production
     if "sslmode" not in DATABASE_URL:
@@ -21,6 +19,7 @@ else:
     engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 class Base(DeclarativeBase):
     pass

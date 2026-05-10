@@ -24,6 +24,7 @@ mcp = FastMCP(
     instructions="An AI platform exposing tools",
 )
 
+
 class MCPAuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
@@ -61,5 +62,6 @@ def _register_all_tools() -> None:
 
     if failures:
         raise RuntimeError(f"Failed to register MCP tools: {failures}")
+
 
 _register_all_tools()

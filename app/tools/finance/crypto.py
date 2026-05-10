@@ -23,12 +23,12 @@ def find_crypto_id(query: str) -> str | None:
         search_url = f"{settings.crypto_base_url}/search"
         response = requests.get(search_url, params={"query": query}, timeout=5)
         response.raise_for_status()
-        data = response.json()        
+        data = response.json()
         coins = data.get("coins", [])
         if coins:
             return str(coins[0].get("id")) if coins[0].get("id") else None
         return None
-    
+
     except requests.exceptions.RequestException as e:
         logger.error(f"API error during CoinGecko ID search: {e}")
         return None
@@ -46,23 +46,20 @@ def get_crypto_price(query: str) -> str:
         if not crypto_id:
             return f"Error: Could not find a matching cryptocurrency for '{query}'. Please try a different name or symbol."
 
-        logger.info(f"Fetching crypto price for: {query} (resolved to ID: {crypto_id}) from CoinGecko")
-        price_url = f"{settings.crypto_base_url}/simple/price"
-        params = {
-            "ids": crypto_id,
-            "vs_currencies": "usd"
-        }
-        response = requests.get(
-            price_url, 
-            params=params, 
-            timeout=10
+        logger.info(
+            f"Fetching crypto price for: {query} (resolved to ID: {crypto_id}) from CoinGecko"
         )
+        price_url = f"{settings.crypto_base_url}/simple/price"
+        params = {"ids": crypto_id, "vs_currencies": "usd"}
+        response = requests.get(price_url, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
         price = data.get(crypto_id, {}).get("usd")
-        
+
         if price is not None:
-            formatted_price = (f"{price:,.2f}" if price >= 1 else f"{price:,.8f}".rstrip("0").rstrip("."))
+            formatted_price = (
+                f"{price:,.2f}" if price >= 1 else f"{price:,.8f}".rstrip("0").rstrip(".")
+            )
             return f"The current price of {query} ({crypto_id}) is ${formatted_price} USD."
         else:
             logger.warning(f"Could not find price for {crypto_id} in CoinGecko response: {data}")

@@ -37,7 +37,7 @@ def execute_code(code: str, language: str = "python") -> str:
     Supports Python, JavaScript, C++, Go, Rust, and more.
 
     :param code: The full code snippet to execute.
-    :param language: Programming language. Supported values: 'python', 'javascript', 'cpp', 'c', 'go', 'rust', 'ruby', 'php', 'java'. 
+    :param language: Programming language. Supported values: 'python', 'javascript', 'cpp', 'c', 'go', 'rust', 'ruby', 'php', 'java'.
     Defaults to 'python'
     """
     if not settings.enable_execute_code:
@@ -51,11 +51,7 @@ def execute_code(code: str, language: str = "python") -> str:
 
     logger.info(f"Executing {language} code via Wandbox API (compiler: {compiler})...")
 
-    payload = {
-        "compiler": compiler,
-        "code": code,
-        "save": False
-    }
+    payload = {"compiler": compiler, "code": code, "save": False}
 
     try:
         with httpx.Client(timeout=30.0) as client:
@@ -67,13 +63,13 @@ def execute_code(code: str, language: str = "python") -> str:
         status = result.get("status")
         stdout = result.get("program_output", "")
         stderr = result.get("program_error", "")
-        
+
         # Also check for compiler errors/output for compiled languages
         compiler_output = result.get("compiler_output", "")
         compiler_error = result.get("compiler_error", "")
 
         output_parts = []
-        
+
         if compiler_output or compiler_error:
             output_parts.append("--- COMPILER ---")
             if compiler_output:

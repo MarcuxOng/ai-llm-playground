@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 
 # Global instances to be reused and kept alive
 _CHECKPOINTER: Any = None
-_CHECKPOINTER_CTX: _GeneratorContextManager[SqliteSaver] | _GeneratorContextManager[PostgresSaver] | None = None
+_CHECKPOINTER_CTX: (
+    _GeneratorContextManager[SqliteSaver] | _GeneratorContextManager[PostgresSaver] | None
+) = None
 _CHECKPOINTER_LOCK = threading.Lock()
 
 
@@ -33,7 +35,7 @@ def get_checkpointer() -> Any:
 
         db_url = settings.database_url
         # Clean logging for security
-        logged_url = db_url.split('@')[-1] if '@' in db_url else db_url
+        logged_url = db_url.split("@")[-1] if "@" in db_url else db_url
         logger.info(f"Initializing checkpointer with database: {logged_url}")
 
         try:

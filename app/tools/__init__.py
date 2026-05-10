@@ -10,7 +10,7 @@ Usage:
     tools = get_tools()          # list of tool dicts (OpenAI/Gemini schema)
     tools = get_tools("my_tool") # fetch a specific tool by name
 
-Tools imports are at the bottom to avoid circular imports. 
+Tools imports are at the bottom to avoid circular imports.
 Each tool should import `register` from this module and use it as a decorator.
 """
 

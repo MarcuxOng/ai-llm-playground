@@ -25,15 +25,14 @@ from app.utils.response import APIResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
-    prefix="/api/v1/agents", 
+    prefix="/api/v1/agents",
     tags=["Agents"],
 )
 
 
 @router.get("/list", response_model=APIResponse[list[AgentResponse]])
 async def list_agents(
-    db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    db: Session = Depends(get_db), api_key: APIKey = Depends(verify_api_key)
 ) -> APIResponse[list[AgentResponse]]:
     query = db.query(Agents).filter(Agents.is_active.is_(True))
     if api_key.id != "master":
@@ -69,7 +68,7 @@ async def create_agent(
     request: Request,
     body: AgentCreate,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    api_key: APIKey = Depends(verify_api_key),
 ) -> APIResponse[AgentResponse]:
     if api_key.id == "master":
         raise HTTPException(403, detail="Master key cannot create agents directly.")
@@ -77,7 +76,9 @@ async def create_agent(
     # Validate requested tools exist in registry
     unknown = [t for t in body.tools if t not in _REGISTRY]
     if unknown:
-        raise HTTPException(400, detail=f"Unknown tools: {unknown}, Available: {list(_REGISTRY.keys())}")
+        raise HTTPException(
+            400, detail=f"Unknown tools: {unknown}, Available: {list(_REGISTRY.keys())}"
+        )
 
     config = Agents(**body.model_dump(), owner_id=api_key.id)
     db.add(config)
@@ -93,7 +94,7 @@ async def update_agent_config(
     agent_id: str,
     body: AgentUpdate,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    api_key: APIKey = Depends(verify_api_key),
 ) -> APIResponse[AgentResponse]:
     query = db.query(Agents).filter(Agents.id == agent_id)
     if api_key.id != "master":
@@ -108,7 +109,9 @@ async def update_agent_config(
     if "tools" in patch:
         unknown = [t for t in patch["tools"] if t not in _REGISTRY]
         if unknown:
-            raise HTTPException(400, detail=f"Unknown tools: {unknown}, Available: {list(_REGISTRY.keys())}")
+            raise HTTPException(
+                400, detail=f"Unknown tools: {unknown}, Available: {list(_REGISTRY.keys())}"
+            )
 
     for field, value in patch.items():
         setattr(config, field, value)
@@ -123,7 +126,7 @@ async def delete_agent_config(
     request: Request,
     agent_id: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    api_key: APIKey = Depends(verify_api_key),
 ) -> APIResponse:  # type: ignore[type-arg]
     query = db.query(Agents).filter(Agents.id == agent_id)
     if api_key.id != "master":
@@ -144,7 +147,7 @@ async def run_agent(
     request: Request,
     body: AgentRunRequest,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    api_key: APIKey = Depends(verify_api_key),
 ) -> APIResponse[AgentRunResponse]:
     """
     Unified endpoint for running agents.
@@ -160,14 +163,13 @@ async def run_agent_stream(
     request: Request,
     body: AgentRunRequest,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(verify_api_key)
+    api_key: APIKey = Depends(verify_api_key),
 ) -> StreamingResponse:
     """
     Endpoint for running agents with streaming responses.
     """
     logger.info(f"Starting agent stream with model: {body.model}")
     response = StreamingResponse(
-        run_agent_stream_service(body, db, api_key),
-        media_type="text/event-stream"
+        run_agent_stream_service(body, db, api_key), media_type="text/event-stream"
     )
     return response

@@ -19,18 +19,15 @@ from app.utils.response import APIResponse
 # Setup logging before FastAPI instance
 setup_logging()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
     # Initialize database tables
     Base.metadata.create_all(bind=engine)
     yield
 
-app = FastAPI(
-    title="AI/LLM Playground",
-    description="",
-    version="1.0.0",
-    lifespan=lifespan
-)
+
+app = FastAPI(title="AI/LLM Playground", description="", version="1.0.0", lifespan=lifespan)
 
 # Add MCP middleware
 app.add_middleware(MCPAuthMiddleware)
@@ -53,13 +50,9 @@ app.mount("/mcp", mcp_app)
 
 @app.get("/api/v1/health", response_model=APIResponse)
 async def health() -> APIResponse:  # type: ignore[type-arg]
-    return APIResponse(
-        data={"message": "Health check passed"}
-    )
+    return APIResponse(data={"message": "Health check passed"})
 
 
 @app.get("/", response_model=APIResponse)
 async def root() -> APIResponse:  # type: ignore[type-arg]
-    return APIResponse(
-        data={"message": "App is running"}
-    )
+    return APIResponse(data={"message": "App is running"})

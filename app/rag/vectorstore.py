@@ -15,6 +15,7 @@ class PineconeStore:
     """
     Simplified VectorStore to interact with Pinecone using the SDK directly.
     """
+
     def __init__(self, index_name: str, embedding: Any, api_key: str, namespace: str) -> None:
         self.pc = Pinecone(api_key=api_key)
         self.index = self.pc.Index(index_name)
@@ -37,31 +38,30 @@ class PineconeStore:
         vectors: list[dict[str, Any]] = []
         for i, (text, meta, vector) in enumerate(zip(texts, metadatas, embeddings, strict=True)):
             # Extract document identifier from metadata (source, doc_id, or fallback)
-            doc_identifier = meta.get('source', meta.get('doc_id', 'unknown'))
+            doc_identifier = meta.get("source", meta.get("doc_id", "unknown"))
 
             # Build hash input with disambiguating fields
             hash_input = f"{self.namespace}_{doc_identifier}_{i}_{ingestion_timestamp}_{text}"
             content_hash = hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
-            vectors.append({
-                "id": f"{self.namespace}_{doc_identifier}_{i}_{content_hash}",
-                "values": vector,
-                "metadata": meta
-            })
+            vectors.append(
+                {
+                    "id": f"{self.namespace}_{doc_identifier}_{i}_{content_hash}",
+                    "values": vector,
+                    "metadata": meta,
+                }
+            )
 
         self.index.upsert(
             vectors=vectors,  # type: ignore[arg-type]
-            namespace=self.namespace
+            namespace=self.namespace,
         )
 
     def similarity_search(self, query: str, k: int = 5) -> list[Document]:
         """Perform a similarity search."""
         query_embedding = self.embedding.embed_query(query)
         results = self.index.query(
-            namespace=self.namespace,
-            vector=query_embedding,
-            top_k=k,
-            include_metadata=True
+            namespace=self.namespace, vector=query_embedding, top_k=k, include_metadata=True
         )
 
         docs = []
@@ -88,4 +88,5 @@ class Retriever:
 
     def __or__(self, other: Any) -> Any:
         from langchain_core.runnables import RunnableLambda
+
         return RunnableLambda(self.invoke) | other

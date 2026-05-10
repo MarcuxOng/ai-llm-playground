@@ -24,10 +24,10 @@ def project_tools_to_langchain(tools: Sequence[str | BaseTool]) -> list[BaseTool
     """
     Convert project-specific registered tools to LangChain-compatible BaseTools.
     Handles a mix of tool names (strings) and already initialized BaseTool objects.
-    
+
     Args:
         tools: List of tool names (strings) OR LangChain BaseTool objects.
-        
+
     Returns:
         List of LangChain BaseTool objects.
     """
@@ -43,24 +43,24 @@ def project_tools_to_langchain(tools: Sequence[str | BaseTool]) -> list[BaseTool
         if not entry:
             missing_tools.append(tool)
             continue
-        
+
         fn = entry["fn"]
         schema = entry["schema"]
-        
+
         # Create a LangChain tool from the function
         lc_tool = StructuredTool.from_function(
-            func=fn,
-            name=tool,
-            description=schema["function"]["description"]
+            func=fn, name=tool, description=schema["function"]["description"]
         )
         lc_tools.append(lc_tool)
-        
+
     if missing_tools:
         raise ValueError(f"Tool(s) not found in registry: {missing_tools}")
     return lc_tools
 
 
-def merge_tools(base_tools: Sequence[str | BaseTool], extra_tools: list[BaseTool] | None = None) -> list[str | BaseTool]:
+def merge_tools(
+    base_tools: Sequence[str | BaseTool], extra_tools: list[BaseTool] | None = None
+) -> list[str | BaseTool]:
     """
     Consolidates base tools and optional extra tools into a single list.
     This is the central place to handle collision resolution or validation.
@@ -102,4 +102,3 @@ def build_agent(
     except Exception as e:
         logger.error(f"Error building agent: {e}")
         raise
-

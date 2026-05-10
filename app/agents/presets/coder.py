@@ -37,8 +37,8 @@ Guidelines:
 # ── Factory ───────────────────────────────────────────────────────────────────
 
 TOOLS = [
-    "calculate", 
-    "read_file", 
+    "calculate",
+    "read_file",
     "write_file",
     "test_regex",
     "count_tokens",
@@ -49,7 +49,7 @@ if settings.enable_execute_code:
 
 
 def build_coder_agent(
-    model: str, 
+    model: str,
     checkpointer: Any = None,
     extra_tools: list[BaseTool] | None = None,
 ) -> CompiledGraph:
@@ -75,4 +75,3 @@ def build_coder_agent(
         return res
     except Exception:
         raise
-

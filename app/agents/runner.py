@@ -22,16 +22,17 @@ class AgentConfig:
         model:    Model string passed to build_agent().
         verbose:  If True, print tool calls and intermediate steps.
     """
+
     name: str = "Agent"
     model: str | None = None
     verbose: bool = True
 
 
 def run_once(
-    agent: Any, 
-    question: str, 
-    config: AgentConfig | None = None, 
-    lg_config: dict[str, Any] | None = None
+    agent: Any,
+    question: str,
+    config: AgentConfig | None = None,
+    lg_config: dict[str, Any] | None = None,
 ) -> str:
     """
     Send a single question to the agent and return its final answer.
@@ -48,7 +49,7 @@ def run_once(
     try:
         if not question or not question.strip():
             raise ValueError("Question cannot be empty.")
-        
+
         cfg = config or AgentConfig()
         if cfg.verbose:
             _print_divider(cfg.name, question)
@@ -60,7 +61,6 @@ def run_once(
             raise RuntimeError("Agent invocation failed") from e
 
         content = result["messages"][-1].content
-
 
         # Handle Gemini/LangChain returning a list of content blocks instead of a string
         if isinstance(content, list):
@@ -112,6 +112,7 @@ def run_interactive(agent: Any, config: AgentConfig | None = None) -> None:
 
 
 # ── Private Helpers ───────────────────────────────────────────────────────────
+
 
 def _print_divider(name: str, question: str) -> None:
     print(f"\n{'─' * 60}\n  [{name}]  {question}\n{'─' * 60}")

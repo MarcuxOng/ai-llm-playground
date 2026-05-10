@@ -7,11 +7,13 @@ import os
 
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
-        return json.dumps({
-            "level": record.levelname,
-            "message": record.getMessage(),
-            "module": record.module,
-        })
+        return json.dumps(
+            {
+                "level": record.levelname,
+                "message": record.getMessage(),
+                "module": record.module,
+            }
+        )
 
 
 class AlignedFormatter(logging.Formatter):
@@ -33,13 +35,7 @@ def setup_logging() -> None:
     else:
         # Default local development format with aligned levels
         # No space between levelname and name because levelname is already padded
-        formatter = AlignedFormatter(
-            "%(levelname)s%(name)s - %(message)s"
-        )
+        formatter = AlignedFormatter("%(levelname)s%(name)s - %(message)s")
         handler.setFormatter(formatter)
 
-    logging.basicConfig(
-        level=level, 
-        handlers=[handler],
-        force=True
-    )
+    logging.basicConfig(level=level, handlers=[handler], force=True)

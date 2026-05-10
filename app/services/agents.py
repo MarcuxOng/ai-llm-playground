@@ -48,8 +48,8 @@ class AgentResponse(BaseModel):
 
 class AgentRunRequest(BaseModel):
     model: str | None = None
-    preset: str | None = None       # hardcoded preset name
-    agent_id: str | None = None   # DB-backed config id — takes priority
+    preset: str | None = None  # hardcoded preset name
+    agent_id: str | None = None  # DB-backed config id — takes priority
     mcp_server_ids: list[str] | None = None  # external MCP servers to connect to
     prompt: str
     thread_id: str | None = None
@@ -79,11 +79,7 @@ class AgentUpdate(BaseModel):
 
 
 @lru_cache(maxsize=32)
-def _get_cached_agent(
-    preset: str, 
-    model: str, 
-    checkpointer_id: int
-) -> CompiledGraph:
+def _get_cached_agent(preset: str, model: str, checkpointer_id: int) -> CompiledGraph:
     """
     Cached agent factory to avoid rebuilding the agent on every request.
     Includes checkpointer_id in the cache key to ensure the checkpointer is correctly handled.
@@ -94,34 +90,21 @@ def _get_cached_agent(
 
 
 async def _get_agent(
-    preset: str,
-    model: str,
-    checkpointer: Any,
-    extra_tools: list[BaseTool] | None = None
+    preset: str, model: str, checkpointer: Any, extra_tools: list[BaseTool] | None = None
 ) -> CompiledGraph:
     """Helper to get cached or new agent with optional extra tools."""
     if extra_tools:
         # Bypass cache if extra tools are present as they are not hashable
         agent_factory = PRESETS[preset]
         return await run_in_threadpool(
-            agent_factory,
-            model=model,
-            checkpointer=checkpointer,
-            extra_tools=extra_tools
+            agent_factory, model=model, checkpointer=checkpointer, extra_tools=extra_tools
         )
-    
-    return await run_in_threadpool(
-        _get_cached_agent,
-        preset,
-        model,
-        id(checkpointer)
-    )
+
+    return await run_in_threadpool(_get_cached_agent, preset, model, id(checkpointer))
 
 
 async def run_agent_service(
-    request: AgentRunRequest, 
-    db: Session,
-    api_key: APIKey
+    request: AgentRunRequest, db: Session, api_key: APIKey
 ) -> AgentRunResponse:
     """
     Unified service for running agents.
@@ -142,7 +125,9 @@ async def run_agent_service(
 
         agent_config_model = agent_query.first()
         if not agent_config_model:
-            raise HTTPException(status_code=404, detail=f"Agent config {request.agent_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Agent config {request.agent_id} not found"
+            )
 
         system_prompt = str(agent_config_model.system_prompt)
         tools = list(agent_config_model.tools) if agent_config_model.tools else []
@@ -151,7 +136,9 @@ async def run_agent_service(
     else:
         preset = str(request.preset)
         if preset not in PRESETS:
-            raise HTTPException(status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}")
+            raise HTTPException(
+                status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}"
+            )
 
         model = str(request.model)
         preset_name = preset
@@ -166,11 +153,10 @@ async def run_agent_service(
         thread = thread_query.first()
         if not thread:
             raise HTTPException(status_code=404, detail=f"Thread {request.thread_id} not found")
-        if (
-            thread.preset != preset_name
-            or thread.model != model
-        ):
-            raise HTTPException(status_code=400, detail="Thread belongs to a different agent configuration.")
+        if thread.preset != preset_name or thread.model != model:
+            raise HTTPException(
+                status_code=400, detail="Thread belongs to a different agent configuration."
+            )
     else:
         thread = Thread(
             id=str(uuid.uuid4()),
@@ -183,7 +169,9 @@ async def run_agent_service(
         db.refresh(thread)
 
     try:
-        logger.info(f"Running agent with preset: {preset_name}, model: {model}, thread: {thread.id}")
+        logger.info(
+            f"Running agent with preset: {preset_name}, model: {model}, thread: {thread.id}"
+        )
         checkpointer = get_checkpointer()
 
         # Load additional MCP tools if requested
@@ -191,8 +179,7 @@ async def run_agent_service(
         if request.mcp_server_ids:
             for server_id in request.mcp_server_ids:
                 mcp_query = db.query(MCPServerConfig).filter(
-                    MCPServerConfig.id == server_id,
-                    MCPServerConfig.is_active.is_(True)
+                    MCPServerConfig.id == server_id, MCPServerConfig.is_active.is_(True)
                 )
                 if api_key.id != "master":
                     mcp_query = mcp_query.filter(MCPServerConfig.owner_id == api_key.id)
@@ -205,7 +192,7 @@ async def run_agent_service(
                         "url": server_config.url,
                         "command": server_config.command,
                         "args": server_config.args,
-                        "env": server_config.env
+                        "env": server_config.env,
                     }
                     tools_from_server = await load_mcp_tools(config_dict)
                     mcp_tools.extend(tools_from_server)
@@ -220,54 +207,34 @@ async def run_agent_service(
                 tools=combined_tools,
                 system_prompt=system_prompt,
                 model=model,
-                checkpointer=checkpointer
+                checkpointer=checkpointer,
             )
         else:
-            agent = await _get_agent(
-                preset_name,
-                model,
-                checkpointer,
-                extra_tools=mcp_tools
-            )
-        
+            agent = await _get_agent(preset_name, model, checkpointer, extra_tools=mcp_tools)
+
         # Run the agent
         config = AgentConfig(
-            name=f"{preset_name.capitalize()} Agent", 
-            model=model, 
+            name=f"{preset_name.capitalize()} Agent",
+            model=model,
             verbose=False,
         )
-        
+
         lg_config: dict[str, Any] = {"configurable": {"thread_id": thread.id}}
         answer = await run_in_threadpool(
-            run_once, 
-            agent, 
-            request.prompt, 
-            config=config,
-            lg_config=lg_config
+            run_once, agent, request.prompt, config=config, lg_config=lg_config
         )
-        
+
         # Save messages
         human_msg = ThreadMessage(
-            id=str(uuid.uuid4()),
-            thread_id=thread.id,
-            role="human",
-            content=request.prompt
+            id=str(uuid.uuid4()), thread_id=thread.id, role="human", content=request.prompt
         )
         db.add(human_msg)
-        ai_msg = ThreadMessage(
-            id=str(uuid.uuid4()),
-            thread_id=thread.id,
-            role="ai",
-            content=answer
-        )
+        ai_msg = ThreadMessage(id=str(uuid.uuid4()), thread_id=thread.id, role="ai", content=answer)
         db.add(ai_msg)
         db.commit()
-        
+
         return AgentRunResponse(
-            answer=answer,
-            preset=preset_name,
-            model=model,
-            thread_id=str(thread.id)
+            answer=answer, preset=preset_name, model=model, thread_id=str(thread.id)
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -277,9 +244,7 @@ async def run_agent_service(
 
 
 async def run_agent_stream_service(
-    request: AgentRunRequest, 
-    db: Session,
-    api_key: APIKey
+    request: AgentRunRequest, db: Session, api_key: APIKey
 ) -> AsyncGenerator[str, None]:
     """
     Unified service for running agents with streaming responses.
@@ -292,15 +257,16 @@ async def run_agent_stream_service(
     # Determine agent config
     if request.agent_id:
         agent_query = db.query(Agents).filter(
-            Agents.id == request.agent_id,
-            Agents.is_active.is_(True)
+            Agents.id == request.agent_id, Agents.is_active.is_(True)
         )
         if api_key.id != "master":
             agent_query = agent_query.filter(Agents.owner_id == api_key.id)
 
         agent_config_model = agent_query.first()
         if not agent_config_model:
-            raise HTTPException(status_code=404, detail=f"Agent config {request.agent_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Agent config {request.agent_id} not found"
+            )
 
         system_prompt = str(agent_config_model.system_prompt)
         tools = list(agent_config_model.tools) if agent_config_model.tools else []
@@ -309,7 +275,9 @@ async def run_agent_stream_service(
     else:
         preset = str(request.preset)
         if preset not in PRESETS:
-            raise HTTPException(status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}")
+            raise HTTPException(
+                status_code=400, detail=f"Invalid preset. Available: {list(PRESETS.keys())}"
+            )
 
         model = str(request.model)
         preset_name = preset
@@ -326,11 +294,10 @@ async def run_agent_stream_service(
             raise HTTPException(status_code=404, detail=f"Thread {request.thread_id} not found")
 
         # Verify thread configuration matches incoming run
-        if (
-            thread.preset != preset_name
-            or thread.model != model
-        ):
-            raise HTTPException(status_code=400, detail="Thread belongs to a different agent configuration.")
+        if thread.preset != preset_name or thread.model != model:
+            raise HTTPException(
+                status_code=400, detail="Thread belongs to a different agent configuration."
+            )
     else:
         thread = Thread(
             id=str(uuid.uuid4()),
@@ -344,16 +311,15 @@ async def run_agent_stream_service(
 
     # Save Human message
     human_msg = ThreadMessage(
-        id=str(uuid.uuid4()),
-        thread_id=thread.id,
-        role="human",
-        content=request.prompt
+        id=str(uuid.uuid4()), thread_id=thread.id, role="human", content=request.prompt
     )
     db.add(human_msg)
     db.commit()
 
     try:
-        logger.info(f"Streaming agent with preset: {preset_name}, model: {model}, thread: {thread.id}")
+        logger.info(
+            f"Streaming agent with preset: {preset_name}, model: {model}, thread: {thread.id}"
+        )
         checkpointer = get_checkpointer()
 
         # Load additional MCP tools if requested
@@ -361,8 +327,7 @@ async def run_agent_stream_service(
         if request.mcp_server_ids:
             for server_id in request.mcp_server_ids:
                 mcp_query = db.query(MCPServerConfig).filter(
-                    MCPServerConfig.id == server_id,
-                    MCPServerConfig.is_active.is_(True)
+                    MCPServerConfig.id == server_id, MCPServerConfig.is_active.is_(True)
                 )
                 if api_key.id != "master":
                     mcp_query = mcp_query.filter(MCPServerConfig.owner_id == api_key.id)
@@ -375,7 +340,7 @@ async def run_agent_stream_service(
                         "url": server_config.url,
                         "command": server_config.command,
                         "args": server_config.args,
-                        "env": server_config.env
+                        "env": server_config.env,
                     }
                     tools_from_server = await load_mcp_tools(config_dict)
                     mcp_tools.extend(tools_from_server)
@@ -389,23 +354,16 @@ async def run_agent_stream_service(
                 tools=combined_tools,
                 system_prompt=system_prompt,
                 model=model,
-                checkpointer=checkpointer
+                checkpointer=checkpointer,
             )
         else:
-            agent = await _get_agent(
-                preset_name,
-                model, 
-                checkpointer,
-                extra_tools=mcp_tools
-            )
-        
+            agent = await _get_agent(preset_name, model, checkpointer, extra_tools=mcp_tools)
+
         lg_config: dict[str, Any] = {"configurable": {"thread_id": thread.id}}
         full_answer = ""
-        
+
         async for event in agent.astream_events(
-            {"messages": [("human", request.prompt)]},
-            config=lg_config,
-            version="v2"
+            {"messages": [("human", request.prompt)]}, config=lg_config, version="v2"
         ):
             kind = event["event"]
             if kind == "on_chat_model_stream":
@@ -418,28 +376,24 @@ async def run_agent_stream_service(
                             if isinstance(part, dict) and part.get("type") == "text":
                                 full_answer += str(part.get("text", ""))
                             elif isinstance(part, str):
-                                full_answer += part          
+                                full_answer += part
                     yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
             elif kind == "on_tool_start":
                 yield f"data: {json.dumps({'type': 'tool_start', 'tool': event['name'], 'input': event['data'].get('input')}, default=str)}\n\n"
             elif kind == "on_tool_end":
                 yield f"data: {json.dumps({'type': 'tool_end', 'tool': event['name'], 'output': event['data'].get('output')}, default=str)}\n\n"
-        
+
         # Save AI message
         ai_msg = ThreadMessage(
-            id=str(uuid.uuid4()),
-            thread_id=thread.id,
-            role="ai",
-            content=full_answer
+            id=str(uuid.uuid4()), thread_id=thread.id, role="ai", content=full_answer
         )
         db.add(ai_msg)
         db.commit()
 
         yield f"data: {json.dumps({'type': 'done', 'thread_id': thread.id})}\n\n"
         yield "data: [DONE]\n\n"
-    except Exception:  
+    except Exception:
         logger.exception("Error in streaming agent")
         yield f"data: {json.dumps({'type': 'error', 'content': 'Stream failed'})}\n\n"
         yield f"data: {json.dumps({'type': 'done', 'thread_id': thread.id})}\n\n"
         yield "data: [DONE]\n\n"
-

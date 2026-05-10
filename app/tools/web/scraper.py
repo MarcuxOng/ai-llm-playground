@@ -15,6 +15,7 @@ from app.tools import register
 
 logger = logging.getLogger(__name__)
 
+
 def is_safe_url(url: str) -> bool:
     """
     Check if a URL is safe to fetch (prevents SSRF).
@@ -38,14 +39,14 @@ def is_safe_url(url: str) -> bool:
 
         for family, _, _, _, sockaddr in addr_info:
             ip_address = str(sockaddr[0])
-            
+
             if family == socket.AF_INET:
                 # IPv4 validation
                 try:
-                    ip_parts = list(map(int, ip_address.split('.')))
+                    ip_parts = list(map(int, ip_address.split(".")))
                     if len(ip_parts) != 4:
                         return False
-                    
+
                     # 127.0.0.0/8 (Loopback)
                     if ip_parts[0] == 127:
                         return False
@@ -63,19 +64,19 @@ def is_safe_url(url: str) -> bool:
                         return False
                 except (ValueError, IndexError):
                     return False
-            
+
             elif family == socket.AF_INET6:
                 # IPv6 validation
                 # Block ::1 (loopback)
-                if ip_address == '::1':
+                if ip_address == "::1":
                     return False
                 # Block fe80::/10 (link-local)
-                if ip_address.lower().startswith('fe80:'):
+                if ip_address.lower().startswith("fe80:"):
                     return False
                 # Block unique local addresses (fc00::/7)
-                if ip_address.lower().startswith('fc') or ip_address.lower().startswith('fd'):
+                if ip_address.lower().startswith("fc") or ip_address.lower().startswith("fd"):
                     return False
-        
+
         return True
     except Exception:
         return False
@@ -84,7 +85,7 @@ def is_safe_url(url: str) -> bool:
 @register
 def scrape_url(url: str, max_chars: int = 4000) -> str:
     """
-    Fetch a URL and extract clean text from it. 
+    Fetch a URL and extract clean text from it.
     Use this when the user provides a direct link or you need more context than a search summary.
 
     :param url: The full URL to scrape (e.g., 'https://example.com').
@@ -105,40 +106,41 @@ def scrape_url(url: str, max_chars: int = 4000) -> str:
 
             logger.info(f"Fetching URL: {current_url}")
             response = requests.get(current_url, headers=headers, timeout=15, allow_redirects=False)
-            
+
             # Handle redirects manually to ensure safety at each hop
             if 300 <= response.status_code < 400:
-                redirect_location = response.headers.get('Location')
+                redirect_location = response.headers.get("Location")
                 if not redirect_location:
                     break
-                
+
                 from urllib.parse import urljoin
+
                 current_url = urljoin(current_url, redirect_location)
                 redirect_count += 1
             else:
                 break
-        
+
         if redirect_count > max_redirects:
             return f"Error: Too many redirects ({redirect_count}) for URL: {url}"
 
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
-        
+
         # Remove script, style, and other noise
         for tag in soup(["script", "style", "nav", "footer", "header", "form"]):
             tag.decompose()
-            
+
         text = soup.get_text(separator="\n")
         lines = [line.strip() for line in text.splitlines() if line.strip()]
         clean_text = "\n".join(lines)
-        
+
         if not clean_text:
             return f"The URL {current_url} was fetched, but no readable text was found."
 
         # Limit response length
         if len(clean_text) > max_chars:
             return clean_text[:max_chars] + f"\n\n[...Truncated to {max_chars} chars...]"
-            
+
         return clean_text
 
     except Exception as e:

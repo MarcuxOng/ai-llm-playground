@@ -23,9 +23,9 @@ def list_gemini_models() -> list[str]:
             if m.name:
                 response = m.name.replace("models/", "")
                 model_list.append(response)
-    
+
         return model_list
-    
+
     except Exception as e:
         logger.error(f"Error fetching Gemini models: {e}")
         raise
@@ -43,7 +43,7 @@ def gemini_service(model: str, prompt: str) -> str:
                 # thinking_config=types.ThinkingConfig(
                 #     thinking_level="high"
                 # ),
-            )
+            ),
         )
 
         return response.text or ""
@@ -51,7 +51,7 @@ def gemini_service(model: str, prompt: str) -> str:
     except Exception as e:
         logger.error(f"Error generating Gemini content: {e}")
         raise
-    
+
 
 def tools_service(model: str, prompt: str) -> str:
     """
@@ -59,7 +59,7 @@ def tools_service(model: str, prompt: str) -> str:
     """
     try:
         logger.info(f"Starting tool-enabled chat with Gemini model: {model}")
-        
+
         # Prepare tools from the registry
         raw_schemas = get_tools()
         tool_schemas: list[dict[str, Any]] = raw_schemas if isinstance(raw_schemas, list) else []
@@ -67,10 +67,11 @@ def tools_service(model: str, prompt: str) -> str:
         if tool_schemas:
             function_declarations = [
                 types.FunctionDeclaration(
-                    name=ts['function']['name'],
-                    description=ts['function']['description'],
-                    parameters=ts['function']['parameters']
-                ) for ts in tool_schemas
+                    name=ts["function"]["name"],
+                    description=ts["function"]["description"],
+                    parameters=ts["function"]["parameters"],
+                )
+                for ts in tool_schemas
             ]
             gemini_tools = [types.Tool(function_declarations=function_declarations)]
 
@@ -78,10 +79,10 @@ def tools_service(model: str, prompt: str) -> str:
         chat = client.chats.create(
             model=model,
             config=types.GenerateContentConfig(
-                tools=gemini_tools, # type: ignore[arg-type]
+                tools=gemini_tools,  # type: ignore[arg-type]
                 system_instruction="You are a helpful assistant that uses tools when necessary.",
                 temperature=0.1,
-            )
+            ),
         )
 
         # Tool Loop: Handle multi-turn tool calls robustly
@@ -95,7 +96,7 @@ def tools_service(model: str, prompt: str) -> str:
                         for part in candidate.content.parts:
                             if part.function_call:
                                 tool_calls.append(part.function_call)
-            
+
             if not tool_calls:
                 return response.text or ""
 
@@ -110,8 +111,7 @@ def tools_service(model: str, prompt: str) -> str:
                     tool_responses.append(
                         types.Part(
                             function_response=types.FunctionResponse(
-                                name=call.name,
-                                response={'result': result}
+                                name=call.name, response={"result": result}
                             )
                         )
                     )
@@ -120,8 +120,7 @@ def tools_service(model: str, prompt: str) -> str:
                     tool_responses.append(
                         types.Part(
                             function_response=types.FunctionResponse(
-                                name=call.name,
-                                response={'error': str(e)}
+                                name=call.name, response={"error": str(e)}
                             )
                         )
                     )
@@ -138,8 +137,7 @@ async def gemini_stream_service(model: str, prompt: str) -> AsyncGenerator[str, 
         logger.info(f"Starting Gemini streaming generation with model: {model}")
         async with client.aio as async_client:
             response = await async_client.models.generate_content_stream(
-                model=model,
-                contents=prompt
+                model=model, contents=prompt
             )
             async for chunk in response:
                 if chunk.text:

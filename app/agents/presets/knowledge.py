@@ -32,15 +32,11 @@ Guidelines:
 
 # ── Factory ───────────────────────────────────────────────────────────────────
 
-TOOLS = [
-    "search_knowledge_base",
-    "calculate",
-    "scrape_url"
-]
+TOOLS = ["search_knowledge_base", "calculate", "scrape_url"]
 
 
 def build_knowledge_agent(
-    model: str, 
+    model: str,
     checkpointer: Any = None,
     extra_tools: list[BaseTool] | None = None,
 ) -> CompiledGraph:
@@ -66,4 +62,3 @@ def build_knowledge_agent(
         return res
     except Exception:
         raise
-

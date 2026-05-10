@@ -14,6 +14,7 @@ class GeminiEmbeddings(Embeddings):
     """
     LangChain compatible wrapper for Google Gemini Embeddings API.
     """
+
     def __init__(self, model: str = settings.gemini_embedding_model):
         self.client = genai.Client(api_key=settings.gemini_api_key)
         self.model = model
@@ -22,9 +23,7 @@ class GeminiEmbeddings(Embeddings):
         """Embed search docs."""
         try:
             response = self.client.models.embed_content(
-                model=self.model,
-                contents=texts,
-                config={'task_type': 'retrieval_document'}
+                model=self.model, contents=texts, config={"task_type": "retrieval_document"}
             )
             embeddings = []
             if response.embeddings:
@@ -40,9 +39,7 @@ class GeminiEmbeddings(Embeddings):
         """Embed query text."""
         try:
             response = self.client.models.embed_content(
-                model=self.model,
-                contents=text,
-                config={'task_type': 'retrieval_query'}
+                model=self.model, contents=text, config={"task_type": "retrieval_query"}
             )
             if response.embeddings and response.embeddings[0].values:
                 return response.embeddings[0].values

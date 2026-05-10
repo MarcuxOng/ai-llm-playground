@@ -28,8 +28,8 @@ Guidelines:
 # ── Factory ───────────────────────────────────────────────────────────────────
 
 TOOLS = [
-    "scrape_url", 
-    "get_weather", 
+    "scrape_url",
+    "get_weather",
     "get_datetime_info",
     "get_news",
     "get_wikipedia_summary",
@@ -38,7 +38,7 @@ TOOLS = [
 
 
 def build_research_agent(
-    model: str, 
+    model: str,
     checkpointer: Any = None,
     extra_tools: list[BaseTool] | None = None,
 ) -> CompiledGraph:
@@ -64,4 +64,3 @@ def build_research_agent(
         return res
     except Exception:
         raise
-
