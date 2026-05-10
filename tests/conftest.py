@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from app.app import app
 from app.config import Settings, get_settings
 from app.database.db import Base, engine
@@ -15,17 +15,17 @@ def setup_database():
     # Base.metadata.drop_all(bind=engine)
 
 
-@pytest.fixture(autouse=True)
-def mock_gemini_client_global(monkeypatch):
-    """Globally mock the Gemini client for each test function."""
+@pytest.fixture(scope="session", autouse=True)
+def mock_gemini_client_global():
+    """Globally mock the Gemini client where it's used."""
     mock_client = MagicMock()
     
     # Mock the structure of the client
     mock_client.models.list_models.return_value = []
     
-    # Patch the Client class
-    monkeypatch.setattr("google.genai.Client", lambda *args, **kwargs: mock_client)
-    return mock_client
+    # Use context manager to patch the module-level client
+    with patch("app.services.gemini.client", mock_client):
+        yield mock_client
 
 @pytest.fixture
 def client():
