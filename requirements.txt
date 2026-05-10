@@ -18,6 +18,7 @@ langchain-text-splitters==1.1.1
 langgraph==1.1.9
 langgraph-checkpoint-postgres==3.0.5
 langgraph-checkpoint-sqlite==3.0.3
+mypy==1.15.0
 numpy==2.4.3
 opentelemetry-api==1.40.0
 opentelemetry-exporter-gcp-trace==1.11.0
@@ -28,8 +29,10 @@ protobuf==5.29.6
 psycopg[binary]==3.3.3
 pydantic==2.12.5
 pydantic_settings==2.13.1
+pytest-asyncio==0.25.3
 python-dotenv==1.2.2
 requests==2.32.5
+ruff==0.9.7
 slowapi==0.1.9
 sqlalchemy==2.0.36
 tavily-python==0.7.23
