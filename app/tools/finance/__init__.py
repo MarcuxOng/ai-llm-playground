@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from app.tools.finance import (
-    stocks,
     crypto,
+    stocks,
 )
 
 finance_tools = [

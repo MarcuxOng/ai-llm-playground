@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
@@ -9,7 +10,6 @@ from app.services.rag import ingest_service, query_service
 from app.utils.auth import verify_api_key
 from app.utils.limiter import limiter
 from app.utils.response import APIResponse
-
 
 logger = logging.getLogger(__name__)
 router = APIRouter(

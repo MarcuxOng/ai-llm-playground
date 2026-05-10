@@ -5,6 +5,7 @@ Token Counter tool — estimates token usage for a string.
 from __future__ import annotations
 
 import logging
+
 try:
     import tiktoken
     _HAS_TIKTOKEN = True

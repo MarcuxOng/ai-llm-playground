@@ -5,6 +5,7 @@ Weather tool — provides the LLM with current weather information via OpenWeath
 from __future__ import annotations
 
 import logging
+
 import requests
 
 from app.config import settings

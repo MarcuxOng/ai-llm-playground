@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import logging
-from fastapi import Request, HTTPException
+
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from app.utils.response import APIResponse

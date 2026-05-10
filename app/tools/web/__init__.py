@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from app.tools.web import (
-    news, 
-    scraper, 
-    weather, 
-    wikipedia, 
+    news,
+    scraper,
+    weather,
+    wikipedia,
     youtube,
 )
 

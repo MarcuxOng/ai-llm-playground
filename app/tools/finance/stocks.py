@@ -5,6 +5,7 @@ Stocks Tools - A collection of tools for stock market analysis and trading strat
 from __future__ import annotations
 
 import logging
+
 import requests
 
 from app.config import settings

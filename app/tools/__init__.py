@@ -20,7 +20,6 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
-
 _REGISTRY: dict[str, dict[str, Any]] = {}  # name → {fn, schema}
 
 
@@ -110,6 +109,6 @@ def call_tool(name: str, **kwargs: Any) -> Any:
 
 
 # Import submodules to trigger registration decorators
-from app.tools.finance import finance_tools # noqa: E402, F401
-from app.tools.system import system_tools # noqa: E402, F401
-from app.tools.web import web_tools # noqa: E402, F401
+from app.tools.finance import finance_tools  # noqa: E402, F401
+from app.tools.system import system_tools  # noqa: E402, F401
+from app.tools.web import web_tools  # noqa: E402, F401

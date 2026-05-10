@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import secrets
 import logging
-
+import secrets
 from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session

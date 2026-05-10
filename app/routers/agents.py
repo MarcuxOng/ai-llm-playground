@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -11,7 +12,7 @@ from app.database.models import Agents, APIKey
 from app.services.agents import (
     AgentCreate,
     AgentResponse,
-    AgentRunRequest, 
+    AgentRunRequest,
     AgentRunResponse,
     AgentUpdate,
     run_agent_service,

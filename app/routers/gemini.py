@@ -3,19 +3,20 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import AsyncGenerator
+
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from app.services.gemini import (
-    gemini_service, 
-    list_gemini_models, 
+    gemini_service,
+    gemini_stream_service,
+    list_gemini_models,
     tools_service,
-    gemini_stream_service
 )
 from app.utils.auth import verify_api_key
-from app.utils.response import APIResponse
 from app.utils.limiter import limiter
+from app.utils.response import APIResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter(

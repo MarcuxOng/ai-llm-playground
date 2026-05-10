@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import re
+
 try:
     from youtube_transcript_api import YouTubeTranscriptApi
     _HAS_YT = True

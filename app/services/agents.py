@@ -3,19 +3,19 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-
 from collections.abc import AsyncGenerator
 from datetime import datetime
-from fastapi import HTTPException
 from functools import lru_cache
-from langchain_core.tools import BaseTool
-from pydantic import BaseModel, model_validator, ConfigDict
-from sqlalchemy.orm import Session
-from starlette.concurrency import run_in_threadpool
 from typing import Any
 
-from app.agents import AgentConfig, PRESETS, run_once, build_agent
-from app.database.models import Agents, APIKey, Thread, ThreadMessage, MCPServerConfig
+from fastapi import HTTPException
+from langchain_core.tools import BaseTool
+from pydantic import BaseModel, ConfigDict, model_validator
+from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
+
+from app.agents import PRESETS, AgentConfig, build_agent, run_once
+from app.database.models import Agents, APIKey, MCPServerConfig, Thread, ThreadMessage
 from app.mcp.client import load_mcp_tools
 from app.memory.checkpointer import get_checkpointer
 

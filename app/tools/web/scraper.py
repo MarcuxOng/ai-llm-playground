@@ -5,10 +5,11 @@ Web Scraper tool — fetches and extracts text from URLs.
 from __future__ import annotations
 
 import logging
-import requests
 import socket
-from bs4 import BeautifulSoup
 from urllib.parse import urlparse
+
+import requests
+from bs4 import BeautifulSoup
 
 from app.tools import register
 

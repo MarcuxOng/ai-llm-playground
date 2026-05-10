@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-import logging
 import hashlib
+import logging
 import secrets
 
-from fastapi import Header, HTTPException, status, Depends
+from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database.db import get_db
 from app.database.models import APIKey
-
 
 logger = logging.getLogger(__name__)
 
