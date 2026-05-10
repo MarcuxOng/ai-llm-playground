@@ -12,21 +12,21 @@ class Settings(BaseSettings):
     enable_execute_code: bool = False
 
     # Gemini API keys
-    gemini_api_key: str
+    gemini_api_key: str = ""
 
     # GCP Infrastructure
-    gcp_project_id: str
+    gcp_project_id: str = ""
     gcp_region: str = "asia-southeast1"
 
     # Tools API keys
-    alpha_vantage_api_key: str
-    openweathermap_api_key: str
-    news_api_key: str
+    alpha_vantage_api_key: str = ""
+    openweathermap_api_key: str = ""
+    news_api_key: str = ""
 
     # Pinecone Configs
-    pinecone_namespace: str
-    pinecone_index_name: str
-    pinecone_api_key: str
+    pinecone_namespace: str = ""
+    pinecone_index_name: str = ""
+    pinecone_api_key: str = ""
     gemini_embedding_model: str = "gemini-embedding-2"
 
     # Base URLs

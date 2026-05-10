@@ -28,7 +28,7 @@ def get_news(query: str, page_size: int = 5, language: str = "en") -> str:
     try:
         logger.info(f"Fetching news for query: {query}")
         url = settings.news_base_url
-        params = {
+        params: dict[str, str | int] = {
             "q": query,
             "pageSize": page_size,
             "language": language,

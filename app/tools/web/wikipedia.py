@@ -28,7 +28,7 @@ def get_wikipedia_summary(query: str) -> str:
         headers = {
             "User-Agent": "AI-LLM-Playground/1.0 (https://github.com/your-repo; mailto:your-email@example.com) Requests/2.31.0"
         }
-        search_params = {
+        search_params: dict[str, str | int] = {
             "action": "query",
             "list": "search",
             "srsearch": query,
@@ -44,7 +44,7 @@ def get_wikipedia_summary(query: str) -> str:
             return f"No Wikipedia page found for '{query}'."
 
         page_title = search_data["query"]["search"][0]["title"]
-        extract_params = {
+        extract_params: dict[str, str | int | bool] = {
             "action": "query",
             "prop": "extracts",
             "exintro": True,
