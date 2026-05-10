@@ -2,9 +2,13 @@
 Token Counter tool — estimates token usage for a string.
 """
 
+from __future__ import annotations
+
 import logging
+
 try:
     import tiktoken
+
     _HAS_TIKTOKEN = True
 except ImportError:
     _HAS_TIKTOKEN = False
@@ -31,7 +35,7 @@ def count_tokens(text: str, model_encoding: str = "cl100k_base") -> str:
 
         encoding = tiktoken.get_encoding(model_encoding)
         count = len(encoding.encode(text))
-        
+
         return f"Exact count: {count} tokens (Encoding: {model_encoding})."
 
     except Exception as e:

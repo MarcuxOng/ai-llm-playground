@@ -2,7 +2,10 @@
 News tool — fetches current news articles using NewsAPI.
 """
 
+from __future__ import annotations
+
 import logging
+
 import requests
 
 from app.config import settings
@@ -25,7 +28,7 @@ def get_news(query: str, page_size: int = 5, language: str = "en") -> str:
     try:
         logger.info(f"Fetching news for query: {query}")
         url = settings.news_base_url
-        params = {
+        params: dict[str, str | int] = {
             "q": query,
             "pageSize": page_size,
             "language": language,
@@ -51,12 +54,9 @@ def get_news(query: str, page_size: int = 5, language: str = "en") -> str:
             source = art.get("source", {}).get("name", "Unknown Source")
             description = art.get("description", "No description available.")
             url = art.get("url", "No URL")
-            
+
             results.append(
-                f"{i}. {title}\n"
-                f"   Source: {source}\n"
-                f"   Summary: {description}\n"
-                f"   Link: {url}"
+                f"{i}. {title}\n   Source: {source}\n   Summary: {description}\n   Link: {url}"
             )
 
         return "\n\n".join(results)

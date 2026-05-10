@@ -1,19 +1,23 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
 
 
 class JsonFormatter(logging.Formatter):
-    def format(self, record):
-        return json.dumps({
-            "level": record.levelname,
-            "message": record.getMessage(),
-            "module": record.module,
-        })
+    def format(self, record: logging.LogRecord) -> str:
+        return json.dumps(
+            {
+                "level": record.levelname,
+                "message": record.getMessage(),
+                "module": record.module,
+            }
+        )
 
 
 class AlignedFormatter(logging.Formatter):
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         # Save original levelname to restore it later
         orig_levelname = record.levelname
         # Pad levelname + colon to 10 characters (e.g., "INFO:     ")
@@ -23,7 +27,7 @@ class AlignedFormatter(logging.Formatter):
         return result
 
 
-def setup_logging():
+def setup_logging() -> None:
     level = os.getenv("LOG_LEVEL", "INFO")
     handler = logging.StreamHandler()
     if os.getenv("ENV") == "production":
@@ -31,13 +35,7 @@ def setup_logging():
     else:
         # Default local development format with aligned levels
         # No space between levelname and name because levelname is already padded
-        formatter = AlignedFormatter(
-            "%(levelname)s%(name)s - %(message)s"
-        )
+        formatter = AlignedFormatter("%(levelname)s%(name)s - %(message)s")
         handler.setFormatter(formatter)
 
-    logging.basicConfig(
-        level=level, 
-        handlers=[handler],
-        force=True
-    )
+    logging.basicConfig(level=level, handlers=[handler], force=True)

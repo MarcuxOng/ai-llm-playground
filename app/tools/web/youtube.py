@@ -2,10 +2,14 @@
 YouTube Transcript tool — fetches transcripts from YouTube videos.
 """
 
+from __future__ import annotations
+
 import logging
 import re
+
 try:
     from youtube_transcript_api import YouTubeTranscriptApi
+
     _HAS_YT = True
 except ImportError:
     _HAS_YT = False
@@ -25,7 +29,9 @@ def get_youtube_transcript(url: str, lang: str = "en") -> str:
     :param lang: Preferred language code for the transcript (default is 'en').
     """
     if not _HAS_YT:
-        return "Error: 'youtube-transcript-api' library not found. Please install it to use this tool."
+        return (
+            "Error: 'youtube-transcript-api' library not found. Please install it to use this tool."
+        )
 
     try:
         # Extract video ID using regex
@@ -34,7 +40,7 @@ def get_youtube_transcript(url: str, lang: str = "en") -> str:
         logger.info(f"Fetching YouTube transcript for ID: {video_id}")
         transcript = YouTubeTranscriptApi().fetch(video_id, languages=[lang])
         full_text = " ".join([t.text for t in transcript])
-        
+
         return f"--- YouTube Transcript ({video_id}) ---\n{full_text}"
 
     except Exception as e:

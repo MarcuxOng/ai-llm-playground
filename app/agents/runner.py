@@ -3,9 +3,11 @@ Handles executing a compiled LangGraph agent.
 Supports single-shot runs and interactive REPL sessions.
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -20,16 +22,17 @@ class AgentConfig:
         model:    Model string passed to build_agent().
         verbose:  If True, print tool calls and intermediate steps.
     """
+
     name: str = "Agent"
-    model: str = None
+    model: str | None = None
     verbose: bool = True
 
 
 def run_once(
-    agent, 
-    question: str, 
-    config: Optional[AgentConfig] = None, 
-    lg_config: Optional[dict] = None
+    agent: Any,
+    question: str,
+    config: AgentConfig | None = None,
+    lg_config: dict[str, Any] | None = None,
 ) -> str:
     """
     Send a single question to the agent and return its final answer.
@@ -46,7 +49,7 @@ def run_once(
     try:
         if not question or not question.strip():
             raise ValueError("Question cannot be empty.")
-        
+
         cfg = config or AgentConfig()
         if cfg.verbose:
             _print_divider(cfg.name, question)
@@ -59,13 +62,12 @@ def run_once(
 
         content = result["messages"][-1].content
 
-
         # Handle Gemini/LangChain returning a list of content blocks instead of a string
         if isinstance(content, list):
             text_parts = []
             for part in content:
                 if isinstance(part, dict) and part.get("type") == "text":
-                    text_parts.append(part.get("text", ""))
+                    text_parts.append(str(part.get("text", "")))
                 elif isinstance(part, str):
                     text_parts.append(part)
             answer = "".join(text_parts)
@@ -82,7 +84,7 @@ def run_once(
         raise
 
 
-def run_interactive(agent, config: Optional[AgentConfig] = None) -> None:
+def run_interactive(agent: Any, config: AgentConfig | None = None) -> None:
     """
     Start an interactive REPL loop with the agent.
     Type 'quit', 'exit', or 'q' to stop.
@@ -111,11 +113,12 @@ def run_interactive(agent, config: Optional[AgentConfig] = None) -> None:
 
 # ── Private Helpers ───────────────────────────────────────────────────────────
 
+
 def _print_divider(name: str, question: str) -> None:
     print(f"\n{'─' * 60}\n  [{name}]  {question}\n{'─' * 60}")
 
 
-def _print_trace(messages: list) -> None:
+def _print_trace(messages: list[Any]) -> None:
     """Print tool calls and tool results from a message list."""
     for msg in messages[1:]:
         role = getattr(msg, "type", type(msg).__name__)
