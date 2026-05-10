@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-def test_list_gemini_models_returns_200(client: TestClient, auth_headers, mock_gemini_client):
+def test_list_gemini_models_returns_200(client: TestClient, auth_headers):
     response = client.get("/api/v1/gemini/models", headers=auth_headers)
     assert response.status_code in [200, 404]
 
