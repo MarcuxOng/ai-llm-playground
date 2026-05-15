@@ -7,12 +7,12 @@ from collections.abc import AsyncGenerator
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from app.services.gemini import (
     gemini_service,
     gemini_stream_service,
     list_gemini_models,
-    tools_service,
 )
 from app.utils.auth import verify_api_key
 from app.utils.limiter import limiter
@@ -38,19 +38,7 @@ async def get_gemini_model() -> APIResponse:  # type: ignore[type-arg]
 @limiter.limit("30/minute")
 async def gemini(request: Request, body: ProviderInput) -> APIResponse:  # type: ignore[type-arg]
     logger.info(f"Calling Gemini API with model: {body.model}, prompt: {body.prompt}")
-    response = gemini_service(model=body.model, prompt=body.prompt)
-
-    return APIResponse(data=response)
-
-
-@router.post("/tools", response_model=APIResponse)
-@limiter.limit("10/minute")
-async def tools(request: Request, body: ProviderInput) -> APIResponse:  # type: ignore[type-arg]
-    """
-    Gemini with tool calling support.
-    """
-    logger.info(f"Calling Gemini tools with model: {body.model}, prompt: {body.prompt}")
-    response = tools_service(model=body.model, prompt=body.prompt)
+    response = await run_in_threadpool(gemini_service, model=body.model, prompt=body.prompt)
 
     return APIResponse(data=response)
 
