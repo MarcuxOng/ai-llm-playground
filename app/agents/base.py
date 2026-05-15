@@ -13,7 +13,7 @@ from langchain_core.tools import BaseTool, StructuredTool
 from langgraph.prebuilt import create_react_agent
 
 from app.services.llm import build_llm
-from app.tools import _REGISTRY
+from app.tools import get_registry
 
 CompiledGraph = Any
 
@@ -39,7 +39,7 @@ def project_tools_to_langchain(tools: Sequence[str | BaseTool]) -> list[BaseTool
             lc_tools.append(tool)
             continue
 
-        entry = _REGISTRY.get(tool)
+        entry = get_registry().get(tool)
         if not entry:
             missing_tools.append(tool)
             continue
