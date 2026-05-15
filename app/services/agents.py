@@ -18,6 +18,7 @@ from app.agents import PRESETS, AgentConfig, build_agent, run_once
 from app.database.models import Agents, APIKey, MCPServerConfig, Thread, ThreadMessage
 from app.mcp.client import load_mcp_tools
 from app.memory.checkpointer import get_checkpointer
+from app.services.gemini import generate_thread_title
 
 CompiledGraph = Any
 
@@ -158,11 +159,14 @@ async def run_agent_service(
                 status_code=400, detail="Thread belongs to a different agent configuration."
             )
     else:
+        # Generate title for new thread
+        title = await run_in_threadpool(generate_thread_title, request.prompt, model)
         thread = Thread(
             id=str(uuid.uuid4()),
             owner_id=api_key.id,
             preset=preset_name,
             model=model,
+            title=title,
         )
         db.add(thread)
         db.commit()
@@ -299,11 +303,14 @@ async def run_agent_stream_service(
                 status_code=400, detail="Thread belongs to a different agent configuration."
             )
     else:
+        # Generate title for new thread
+        title = await run_in_threadpool(generate_thread_title, request.prompt, model)
         thread = Thread(
             id=str(uuid.uuid4()),
             owner_id=api_key.id,
             preset=preset_name,
             model=model,
+            title=title,
         )
         db.add(thread)
         db.commit()

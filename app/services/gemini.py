@@ -42,6 +42,28 @@ def gemini_service(model: str, prompt: str) -> str:
         raise
 
 
+def generate_thread_title(prompt: str, model: str = "gemini-1.5-flash") -> str:
+    """
+    Generates a short (3-5 words) descriptive title for a thread based on the initial prompt.
+    """
+    try:
+        logger.info("Generating thread title...")
+        # Use a concise internal prompt for title generation
+        title_prompt = (
+            f"Generate a concise, 3-5 word title for a conversation that starts with: '{prompt}'. "
+            "Respond ONLY with the title text, no quotes or punctuation."
+        )
+        llm = build_llm(model)
+        response = llm.invoke(title_prompt)
+        title = str(response.content).strip()
+        # Clean up any quotes if the model ignored instructions
+        return title.replace('"', '').replace("'", "")
+    except Exception as e:
+        logger.error(f"Error generating thread title: {e}")
+        # Fallback to a truncated version of the prompt if LLM fails
+        return prompt[:30] + "..." if len(prompt) > 30 else prompt
+
+
 async def gemini_stream_service(model: str, prompt: str) -> AsyncGenerator[str, None]:
     """Streaming intentionally uses genai.Client.aio for native SSE support."""
     try:
