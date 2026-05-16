@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # Platform Auth
-    database_url: str = "sqlite:///./test.db"
+    database_url: str
     master_api_key: str
 
     # Redis for rate limiting (optional)
