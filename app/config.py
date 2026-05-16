@@ -1,4 +1,4 @@
-# Do not add = "" to any of the vars under Settings()
+# Do not add empty strings or values to any of the vars under Settings()
 
 from __future__ import annotations
 
@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     # Platform Auth
     database_url: str = "sqlite:///./test.db"
     master_api_key: str
+
+    # Redis for rate limiting (optional)
+    redis_url: str
 
     # Gemini API keys
     gemini_api_key: str
