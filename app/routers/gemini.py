@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import AsyncGenerator
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
@@ -13,6 +14,7 @@ from app.services.gemini import (
     gemini_service,
     gemini_stream_service,
     list_gemini_models,
+    structured_service,
 )
 from app.utils.auth import verify_api_key
 from app.utils.limiter import limiter
@@ -27,6 +29,10 @@ class ProviderInput(BaseModel):
     prompt: str
 
 
+class StructuredInput(ProviderInput):
+    response_schema: dict[str, Any]  # JSON Schema dict
+
+
 @router.get("/models", response_model=APIResponse)
 async def get_gemini_model() -> APIResponse:  # type: ignore[type-arg]
     logger.info("Fetching available Gemini models")
@@ -39,6 +45,17 @@ async def get_gemini_model() -> APIResponse:  # type: ignore[type-arg]
 async def gemini(request: Request, body: ProviderInput) -> APIResponse:  # type: ignore[type-arg]
     logger.info(f"Calling Gemini API with model: {body.model}, prompt: {body.prompt}")
     response = await run_in_threadpool(gemini_service, model=body.model, prompt=body.prompt)
+
+    return APIResponse(data=response)
+
+
+@router.post("/structured", response_model=APIResponse)
+@limiter.limit("20/minute")
+async def gemini_structured(request: Request, body: StructuredInput) -> APIResponse:  # type: ignore[type-arg]
+    logger.info(f"Calling Structured Gemini API with model: {body.model}, prompt: {body.prompt}")
+    response = await run_in_threadpool(
+        structured_service, model=body.model, prompt=body.prompt, schema=body.response_schema
+    )
 
     return APIResponse(data=response)
 

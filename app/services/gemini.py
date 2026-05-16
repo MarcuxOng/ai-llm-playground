@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import AsyncGenerator
+from typing import Any
 
 from google import genai
+from google.genai import types
 
 from app.config import settings
 from app.services.llm import build_llm
@@ -42,6 +45,33 @@ def gemini_service(model: str, prompt: str) -> str:
         raise
 
 
+def structured_service(model: str, prompt: str, schema: dict[str, Any]) -> dict[str, Any]:
+    """
+    Structured output service using raw genai.Client.
+    Returns guaranteed-valid JSON matching the provided schema.
+    """
+    try:
+        logger.info(f"Generating structured content with Gemini model: {model}")
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=schema,
+            ),
+        )
+
+        if not response.text:
+            raise ValueError("Gemini returned an empty response")
+
+        # Parse the JSON string into a dict
+        return dict(json.loads(response.text))
+
+    except Exception as e:
+        logger.error(f"Error generating structured content: {e}")
+        raise
+
+
 def generate_thread_title(prompt: str, model: str = "gemini-1.5-flash") -> str:
     """
     Generates a short (3-5 words) descriptive title for a thread based on the initial prompt.
@@ -57,7 +87,7 @@ def generate_thread_title(prompt: str, model: str = "gemini-1.5-flash") -> str:
         response = llm.invoke(title_prompt)
         title = str(response.content).strip()
         # Clean up any quotes if the model ignored instructions
-        return title.replace('"', '').replace("'", "")
+        return title.replace('"', "").replace("'", "")
     except Exception as e:
         logger.error(f"Error generating thread title: {e}")
         # Fallback to a truncated version of the prompt if LLM fails
