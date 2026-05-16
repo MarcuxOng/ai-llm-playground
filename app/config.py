@@ -37,7 +37,6 @@ class Settings(BaseSettings):
     alpha_vantage_base_url: str = "https://www.alphavantage.co/query"
     crypto_base_url: str = "https://api.coingecko.com/api/v3"
     news_base_url: str = "https://newsapi.org/v2/everything"
-    wandbox_base_url: str = "https://wandbox.org/api/compile.json"
     weather_base_url: str = "https://api.openweathermap.org/data/2.5/weather"
     wikipedia_base_url: str = "https://en.wikipedia.org/w/api.php"
 
