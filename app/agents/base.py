@@ -9,8 +9,8 @@ import logging
 from collections.abc import Sequence
 from typing import Any
 
-from langchain_core.tools import BaseTool, StructuredTool
 from langchain.agents import create_agent
+from langchain_core.tools import BaseTool, StructuredTool
 
 from app.services.llm import build_llm
 from app.tools import get_registry

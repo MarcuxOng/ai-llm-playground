@@ -76,9 +76,7 @@ async def create_agent(
     # Validate requested tools exist in registry
     unknown = [t for t in body.tools if not has_tool(t)]
     if unknown:
-        raise HTTPException(
-            400, detail=f"Unknown tools: {unknown}, Available: {list_tool_names()}"
-        )
+        raise HTTPException(400, detail=f"Unknown tools: {unknown}, Available: {list_tool_names()}")
 
     config = Agents(**body.model_dump(), owner_id=api_key.id)
     db.add(config)
