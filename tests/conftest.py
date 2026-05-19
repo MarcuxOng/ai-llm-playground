@@ -23,6 +23,11 @@ def mock_gemini_client_global():
     # Mock the structure of the client
     mock_client.models.list_models.return_value = []
     
+    # Mock generate_content response
+    mock_response = MagicMock()
+    mock_response.text = '{"foo": "bar"}'
+    mock_client.models.generate_content.return_value = mock_response
+    
     # Use context manager to patch the module-level client
     with patch("app.services.gemini.client", mock_client):
         yield mock_client
