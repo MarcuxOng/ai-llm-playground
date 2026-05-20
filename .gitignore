@@ -89,12 +89,15 @@ pip-delete-this-directory.txt
 .DS_Store
 Thumbs.db
 
-# Project specific
-misc/
+#Gemini Files
 conductor/
 .gemini/
+.agents/
 *GEMINI.md
 *.geminiignore
+
+# Project specific
+misc/
 
 # mypy
 .mypy_cache/
